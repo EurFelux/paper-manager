@@ -12,7 +12,11 @@ function buildProviderOptions(
 
 export async function embed(config: EmbeddingModelConfig, text: string): Promise<number[]> {
   const model = createEmbeddingModel(config);
-  const result = await aiEmbed({ model, value: text, providerOptions: buildProviderOptions(config) });
+  const result = await aiEmbed({
+    model,
+    value: text,
+    providerOptions: buildProviderOptions(config),
+  });
   return result.embedding;
 }
 
@@ -21,6 +25,10 @@ export async function embedMany(
   texts: string[],
 ): Promise<number[][]> {
   const model = createEmbeddingModel(config);
-  const result = await aiEmbedMany({ model, values: texts, providerOptions: buildProviderOptions(config) });
+  const result = await aiEmbedMany({
+    model,
+    values: texts,
+    providerOptions: buildProviderOptions(config),
+  });
   return result.embeddings;
 }
