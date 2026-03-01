@@ -11,6 +11,14 @@ A CLI tool for managing academic papers with knowledge base and vector search su
 npm install -g paper-manager
 ```
 
+```bash
+pnpm install -g paper-manager
+```
+
+```bash
+bun install -g paper-manager
+```
+
 ## Quick Start
 
 ```bash
@@ -67,6 +75,22 @@ paper lit note remove <lit-id> <key>  # Remove a note
 - **Project data**: `./.paper-manager/` — project-specific knowledge bases
 
 Project config takes priority over user config.
+
+## Agent Skill
+
+Install as a skill to let coding agent manage your papers (Powered by [vercel-labs/skills](https://github.com/vercel-labs/skills)):
+
+```bash
+npx skills add https://github.com/EurFelux/paper-manager
+```
+
+```bash
+pnpx skills add https://github.com/EurFelux/paper-manager
+```
+
+```bash
+bunx skills add https://github.com/EurFelux/paper-manager
+```
 
 ## License
 
