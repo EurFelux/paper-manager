@@ -8,11 +8,11 @@ A paper management system. See `docs/architecture.md` for details.
 
 ## Commands
 
-- `pnpm run typecheck` — Type check with `tsc --noEmit`
-- `pnpm run lint` — Lint with oxlint (type-aware mode)
-- `pnpm run lint:fix` — Auto-fix lint issues
-- `pnpm run fmt` — Format code with oxfmt
-- `pnpm run fmt:check` — Check formatting without modifying files
+- `pnpm typecheck` — Type check with `tsc --noEmit`
+- `pnpm lint` — Lint with oxlint (type-aware mode)
+- `pnpm lint:fix` — Auto-fix lint issues
+- `pnpm fmt` — Format code with oxfmt
+- `pnpm fmt:check` — Check formatting without modifying files
 
 ## Tooling
 

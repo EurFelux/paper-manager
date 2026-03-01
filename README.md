@@ -26,12 +26,12 @@ pnpm fmt
 
 ## Available Scripts
 
-| Script | Description |
-| --- | --- |
-| `pnpm typecheck` | Run TypeScript type checking |
-| `pnpm lint` | Lint with oxlint (type-aware) |
-| `pnpm lint:fix` | Lint and auto-fix |
-| `pnpm fmt` | Format with oxfmt |
+| Script           | Description                      |
+| ---------------- | -------------------------------- |
+| `pnpm typecheck` | Run TypeScript type checking     |
+| `pnpm lint`      | Lint with oxlint (type-aware)    |
+| `pnpm lint:fix`  | Lint and auto-fix                |
+| `pnpm fmt`       | Format with oxfmt                |
 | `pnpm fmt:check` | Check formatting without writing |
 
 ## License

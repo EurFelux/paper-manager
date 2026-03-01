@@ -2,13 +2,13 @@
 
 ## 技术栈
 
-| 组件 | 选择 | 理由 |
-|------|------|------|
-| 关系数据库 | better-sqlite3 | 本地文件、零配置、同步 API |
-| 向量存储 | FaissStore | LangChain 集成、本地文件持久化 |
-| PDF 解析 | @langchain/community PDFLoader | 与 LangChain 生态集成 |
-| CLI 框架 | commander | 已在依赖中 |
-| 验证 | zod | 已在依赖中 |
+| 组件       | 选择                           | 理由                           |
+| ---------- | ------------------------------ | ------------------------------ |
+| 关系数据库 | better-sqlite3                 | 本地文件、零配置、同步 API     |
+| 向量存储   | FaissStore                     | LangChain 集成、本地文件持久化 |
+| PDF 解析   | @langchain/community PDFLoader | 与 LangChain 生态集成          |
+| CLI 框架   | commander                      | 已在依赖中                     |
+| 验证       | zod                            | 已在依赖中                     |
 
 ## 目录结构
 
@@ -46,12 +46,13 @@ src/
 ## 数据模型（Zod Schema First）
 
 ### 基础配置 Schema
+
 ```typescript
 import { z } from "zod";
 
 // 模型配置（不包含 id，id 由 config.json 的 key 决定）
 export const EmbeddingModelConfigSchema = z.object({
-  provider: z.enum(['openai']),
+  provider: z.enum(["openai"]),
   model: z.string(),
   baseUrl: z.string().url().optional(),
   apiKey: z.string(),
@@ -66,6 +67,7 @@ export type EmbeddingModelConfig = z.infer<typeof EmbeddingModelConfigSchema> & 
 ```
 
 ### 知识库 Schema
+
 ```typescript
 import { z } from "zod";
 
@@ -73,7 +75,7 @@ export const KnowledgeBaseMetadataSchema = z.object({
   id: z.uuid(),
   name: z.string().min(1),
   description: z.string(),
-  embeddingModelId: z.string().min(1),  // 引用 Config 中的模型配置 ID
+  embeddingModelId: z.string().min(1), // 引用 Config 中的模型配置 ID
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -82,6 +84,7 @@ export type KnowledgeBaseMetadata = z.infer<typeof KnowledgeBaseMetadataSchema>;
 ```
 
 ### 文献 Schema
+
 ```typescript
 import { z } from "zod";
 
@@ -95,7 +98,7 @@ export const LiteratureMetadataSchema = z.object({
   keywords: z.array(z.string()).default([]),
   url: z.string().url().nullable(),
   notes: z.record(z.string(), z.string()).default({}),
-  knowledgeBaseId: z.uuid(),  // 必须关联到知识库
+  knowledgeBaseId: z.uuid(), // 必须关联到知识库
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -118,6 +121,7 @@ export type UpdateLiteratureInput = z.infer<typeof UpdateLiteratureSchema>;
 ```
 
 ### 配置 Schema
+
 ```typescript
 import { z } from "zod";
 import { EmbeddingModelConfigSchema } from "./config";
@@ -133,6 +137,7 @@ export type Config = z.infer<typeof ConfigSchema>;
 ```
 
 ### 输入验证示例
+
 ```typescript
 // 验证用户输入
 const result = CreateLiteratureSchema.safeParse(userInput);
@@ -155,6 +160,7 @@ function fromDbRow(row: unknown): LiteratureMetadata {
 ## CLI 命令设计
 
 ### 文献管理
+
 ```bash
 # 添加文献
 paper lit add <knowledge-base-id> <pdf-path>
@@ -176,6 +182,7 @@ paper lit note <subcommand> [args]
 ```
 
 #### 笔记管理 (lit note)
+
 ```bash
 paper lit note list <literature-id>              # 列出所有笔记
 paper lit note set <literature-id> <key> <value> # 添加/更新笔记项
@@ -183,6 +190,7 @@ paper lit note remove <literature-id> <key>      # 删除笔记项
 ```
 
 ### 知识库管理
+
 ```bash
 # 创建知识库（默认 Project 层级，--user 创建到 User DB）
 paper kb create <name> --description <desc> [--embedding-model <model_config_id>] [--user]
@@ -198,6 +206,7 @@ paper kb query <id> <query-text>
 ```
 
 ### 配置管理
+
 ```bash
 # 查看配置（--user 查看全局配置，否则查看项目配置）
 paper config get <key> [--user]
@@ -219,6 +228,7 @@ paper config list [--user]
 ## 核心代码示例
 
 ### PDF 加载
+
 ```typescript
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
@@ -229,6 +239,7 @@ const docs = await loader.load();
 ```
 
 ### AI 嵌入（ai SDK）
+
 ```typescript
 import { embed, embedMany } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -255,6 +266,7 @@ const { embeddings } = await embedMany({
 ### 向量存储（FaissStore + ai SDK）
 
 **ai 模块提供嵌入函数**（`src/ai/embed.ts`）：
+
 ```typescript
 import { embed, embedMany } from "./ai/embed";
 
@@ -268,6 +280,7 @@ const embeddings = await embedMany(config, ["text1", "text2"]);
 ```
 
 **适配器包装为 LangChain Embeddings**（`src/vector-store/embeddings.ts`）：
+
 ```typescript
 import { Embeddings } from "@langchain/core/embeddings";
 import { embed, embedMany } from "../ai/embed";
@@ -289,6 +302,7 @@ export class AiSdkEmbeddings extends Embeddings {
 ```
 
 **使用 FaissStore**（`src/vector-store/index.ts`）：
+
 ```typescript
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
 import { AiSdkEmbeddings } from "./embeddings";
@@ -311,10 +325,10 @@ const results = await loadedStore.similaritySearch(query, k);
 
 ### 数据库分层
 
-| 层级 | 路径 | 存储内容 | 典型用途 |
-|------|------|----------|----------|
-| **User DB** | `~/.paper-manager/papers.db` | 全局配置、API 密钥、个人知识库、个人文献 | 跨项目复用的资源 |
-| **Project DB** | `./.paper-manager/papers.db` | 项目专属知识库、项目文献、项目配置 | 项目内资源，可版本控制 |
+| 层级           | 路径                         | 存储内容                                 | 典型用途               |
+| -------------- | ---------------------------- | ---------------------------------------- | ---------------------- |
+| **User DB**    | `~/.paper-manager/papers.db` | 全局配置、API 密钥、个人知识库、个人文献 | 跨项目复用的资源       |
+| **Project DB** | `./.paper-manager/papers.db` | 项目专属知识库、项目文献、项目配置       | 项目内资源，可版本控制 |
 
 ### DB Schema
 
@@ -348,6 +362,7 @@ CREATE TABLE literatures (
 ```
 
 ### 数据目录结构
+
 ```
 ~/.paper-manager/                       # User 数据目录
 ├── papers.db                           # User SQLite
@@ -367,7 +382,9 @@ CREATE TABLE literatures (
 ```
 
 ### 配置层级与优先级
+
 配置优先级（从高到低）：
+
 1. Project 配置（`./.paper-manager/config.json`）
 2. User 配置（`~/.paper-manager/config.json`）
 3. 默认值
@@ -380,17 +397,17 @@ CREATE TABLE literatures (
     "openai-small": {
       "provider": "openai",
       "model": "text-embedding-3-small",
-      "apiKey": "sk-...",  // 直接从配置文件读取
-      "dimensions": 1536
+      "apiKey": "sk-...", // 直接从配置文件读取
+      "dimensions": 1536,
     },
     "openai-large": {
       "provider": "openai",
       "model": "text-embedding-3-large",
       "apiKey": "sk-...",
-      "dimensions": 3072
-    }
+      "dimensions": 3072,
+    },
   },
-  "defaultEmbeddingModelId": "openai-small"
+  "defaultEmbeddingModelId": "openai-small",
 }
 ```
 
@@ -402,7 +419,7 @@ const configSchemas = {
 } as const;
 
 type ConfigKeyTypeMap = {
-  [K in keyof typeof configSchemas]: z.infer<typeof configSchemas[K]>;
+  [K in keyof typeof configSchemas]: z.infer<(typeof configSchemas)[K]>;
 };
 
 // 读取并合并配置（Project 配置覆盖 User 配置）
@@ -420,9 +437,7 @@ function getRawConfigValue(key: string): unknown {
 }
 
 // 类型安全的配置读取（带运行时验证）
-function getConfig<K extends keyof ConfigKeyTypeMap>(
-  key: K
-): ConfigKeyTypeMap[K] | null {
+function getConfig<K extends keyof ConfigKeyTypeMap>(key: K): ConfigKeyTypeMap[K] | null {
   const rawValue = getRawConfigValue(key);
   if (rawValue === undefined) return null;
 
@@ -451,6 +466,7 @@ function getModelConfig(modelId: string): EmbeddingModelConfig {
 ### 跨库查询机制
 
 **项目在 User KB 中检索**
+
 ```typescript
 // 优先查 Project DB，找不到时回退到 User DB
 const kb = projectDb.getKnowledgeBase(id) ?? userDb.getKnowledgeBase(id);

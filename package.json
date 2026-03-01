@@ -2,12 +2,16 @@
   "name": "paper-manager",
   "version": "0.0.1",
   "description": "A paper management system.",
-  "main": "index.js",
-  "type": "module",
-  "engines": {
-    "node": ">=24"
+  "keywords": [],
+  "license": "MIT",
+  "author": "EurFelux",
+  "bin": {
+    "paper": "dist/index.js"
   },
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --type-aware",
@@ -15,13 +19,11 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check"
   },
-  "keywords": [],
-  "author": "EurFelux",
-  "license": "MIT",
-  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
   "dependencies": {
     "@ai-sdk/openai": "^3.0.37",
+    "@ai-sdk/provider": "^3.0.8",
     "@langchain/community": "^1.1.20",
+    "@langchain/core": "^1.1.29",
     "@langchain/textsplitters": "^1.0.1",
     "ai": "^6.0.105",
     "better-sqlite3": "^12.6.2",
@@ -33,9 +35,14 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
+    "@types/cli-progress": "^3.11.6",
     "oxfmt": "^0.35.0",
     "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.15.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017"
 }
