@@ -73,6 +73,10 @@ paper lit note set <lit-id> <k> <v>   # Set a note
 paper lit note remove <lit-id> <key>  # Remove a note
 ```
 
+## Configuration
+
+See [Configuration Reference](docs/configuration.md) for all available config fields and detailed usage.
+
 ## Data Storage
 
 - **User data**: `~/.paper-manager/` — global config, personal knowledge bases
