@@ -20,7 +20,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "generate:schema": "tsx scripts/generate-schema.ts",
+    "generate:schema": "tsx scripts/generate-schema.ts && oxfmt config.schema.json",
     "release": "tsx scripts/release.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit",
