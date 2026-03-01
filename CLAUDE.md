@@ -20,3 +20,7 @@ A paper management system. See `docs/architecture.md` for details.
 - **Formatter**: oxfmt (not Prettier). Config in `.oxfmtrc.json`.
 - **Type checking**: TypeScript 5.9 via `tsc --noEmit`. Config in `tsconfig.json`.
 - **Package manager**: pnpm (pinned via `packageManager` field). Always use `pnpm`, never `npm` or `yarn`.
+
+## Coding Standards
+
+- **Avoid `any` and `as`**: Do not use `any` type or `as` type assertions. Use proper type annotations and type guards instead.
