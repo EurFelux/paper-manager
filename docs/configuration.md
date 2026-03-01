@@ -20,13 +20,14 @@ Configuration is split into two scopes. Project-scope values override user-scope
 
 A map of embedding model configurations. Each key is a user-defined model ID, and the value is a model config object with the following fields:
 
-| Field        | Type       | Required | Description                                                                              |
-| ------------ | ---------- | -------- | ---------------------------------------------------------------------------------------- |
-| `provider`   | `"openai"` | Yes      | Model provider. Currently only `"openai"` is supported (any OpenAI-compatible API works) |
-| `model`      | `string`   | Yes      | Model name, e.g. `"text-embedding-3-small"`                                              |
-| `dimensions` | `number`   | Yes      | Vector dimensions (positive integer). Must match the model's actual output dimensions    |
-| `apiKey`     | `string`   | Yes      | API key                                                                                  |
-| `baseUrl`    | `string`   | No       | Custom API endpoint URL. Use this for OpenAI-compatible third-party services             |
+| Field        | Type       | Required | Description                                                                                |
+| ------------ | ---------- | -------- | ------------------------------------------------------------------------------------------ |
+| `provider`   | `"openai"` | Yes      | Model provider. Currently only `"openai"` is supported (any OpenAI-compatible API works)   |
+| `model`      | `string`   | Yes      | Model name, e.g. `"text-embedding-3-small"`                                                |
+| `dimensions` | `number`   | Yes      | Vector dimensions (positive integer). Must match the model's actual output dimensions      |
+| `apiKey`     | `string`   | Yes      | API key                                                                                    |
+| `baseUrl`    | `string`   | No       | Custom API endpoint URL. Use this for OpenAI-compatible third-party services               |
+| `batchSize`  | `number`   | No       | Max number of texts per embedding API request. Set this if your provider limits batch size |
 
 ### `defaultEmbeddingModelId`
 
@@ -51,7 +52,8 @@ The default embedding model ID. Must reference a key defined in `embeddingModels
       "model": "text-embedding-3-large",
       "dimensions": 3072,
       "apiKey": "sk-...",
-      "baseUrl": "https://api.openai.com/v1"
+      "baseUrl": "https://api.openai.com/v1",
+      "batchSize": 64
     }
   },
   "defaultEmbeddingModelId": "openai-small"

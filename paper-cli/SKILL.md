@@ -68,6 +68,7 @@ The embedding model config fields:
 - `baseUrl`: optional custom API endpoint
 - `apiKey`: API key for the provider
 - `dimensions`: embedding vector dimensions (e.g., 1536)
+- `batchSize`: optional max number of texts per embedding API request (set this if your provider limits batch size)
 
 ## Command Reference
 
@@ -83,7 +84,7 @@ paper config remove <key> [--user]      # Remove a config key
 
 Config keys:
 
-- `embeddingModels` — a JSON object of `{ [modelId]: { provider, model, baseUrl?, apiKey, dimensions } }`
+- `embeddingModels` — a JSON object of `{ [modelId]: { provider, model, baseUrl?, apiKey, dimensions, batchSize? } }`
 - `defaultEmbeddingModelId` — which model ID to use when none is specified
 
 ### paper kb — Knowledge Base Management
