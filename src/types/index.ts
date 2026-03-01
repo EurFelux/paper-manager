@@ -61,6 +61,7 @@ export type UpdateLiteratureInput = z.infer<typeof UpdateLiteratureSchema>;
 // ─── Config ─────────────────────────────────────────────────
 
 export const ConfigSchema = z.object({
+  $schema: z.string().optional(),
   embeddingModels: z.record(z.string().min(1), EmbeddingModelConfigSchema).default({}),
   defaultEmbeddingModelId: z.string().min(1).optional(),
 });
