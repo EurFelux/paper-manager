@@ -1,0 +1,24 @@
+{
+  "name": "my-ts-starter",
+  "version": "0.0.1",
+  "description": "Typescript project template with linter, formatter, etc.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
+  },
+  "keywords": [],
+  "author": "EurFelux",
+  "license": "MIT",
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
+  "devDependencies": {
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.50.0",
+    "oxlint-tsgolint": "^0.15.0",
+    "typescript": "^5.9.3"
+  }
+}
