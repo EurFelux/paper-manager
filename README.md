@@ -1,5 +1,8 @@
 # paper-manager
 
+[![npm version](https://img.shields.io/npm/v/paper-manager)](https://www.npmjs.com/package/paper-manager)
+[![license](https://img.shields.io/npm/l/paper-manager)](https://github.com/EurFelux/paper-manager/blob/main/LICENSE)
+
 A CLI tool for managing academic papers with knowledge base and vector search support.
 
 ## Installation
