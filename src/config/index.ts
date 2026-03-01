@@ -4,8 +4,8 @@ import * as path from "node:path";
 
 import * as z from "zod";
 
-import type { EmbeddingModelConfig } from '../types/index.js';
-import { EmbeddingModelConfigSchema } from '../types/index.js';
+import type { EmbeddingModelConfig } from "../types/index.js";
+import { EmbeddingModelConfigSchema } from "../types/index.js";
 
 // ─── Path Utilities ─────────────────────────────────────────
 

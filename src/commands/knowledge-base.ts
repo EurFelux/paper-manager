@@ -15,6 +15,7 @@ import * as projectKb from "../db/project/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
+import { log } from "../logger.js";
 import type { KnowledgeBaseMetadata } from "../types/index.js";
 import { queryVectorStore } from "../vector-store/index.js";
 
@@ -53,7 +54,7 @@ export function createKnowledgeBaseCommand(): Command {
         if (!embeddingModelId) {
           const defaultId = getConfig("defaultEmbeddingModelId");
           if (!defaultId) {
-            console.error("Error: No embedding model specified and no default configured.");
+            log.error("No embedding model specified and no default configured.");
             process.exit(1);
           }
           embeddingModelId = defaultId;
@@ -62,7 +63,7 @@ export function createKnowledgeBaseCommand(): Command {
         // Validate model config exists
         const models = getConfig("embeddingModels");
         if (!models?.[embeddingModelId]) {
-          console.error(`Error: Embedding model "${embeddingModelId}" not found in config.`);
+          log.error(`Embedding model "${embeddingModelId}" not found in config.`);
           process.exit(1);
         }
 
@@ -74,9 +75,9 @@ export function createKnowledgeBaseCommand(): Command {
           embeddingModelId,
         });
 
-        console.log(`Knowledge base created: ${result.id}`);
-        console.log(`  Name: ${result.name}`);
-        console.log(`  Scope: ${options.user ? "user" : "project"}`);
+        log.success(`Knowledge base created: ${result.id}`);
+        log.label("Name:", result.name);
+        log.label("Scope:", options.user ? "user" : "project");
       },
     );
 
@@ -96,17 +97,17 @@ export function createKnowledgeBaseCommand(): Command {
       }
 
       if (results.length === 0) {
-        console.log("No knowledge bases found.");
+        log.info("No knowledge bases found.");
         return;
       }
 
       for (const kb of results) {
-        console.log(`[${kb.scope}] ${kb.id}`);
-        console.log(`  Name: ${kb.name}`);
-        console.log(`  Description: ${kb.description}`);
-        console.log(`  Model: ${kb.embeddingModelId}`);
-        console.log(`  Created: ${kb.createdAt.toISOString()}`);
-        console.log();
+        log.header(`[${kb.scope}] ${kb.id}`);
+        log.label("Name:", kb.name);
+        log.label("Description:", kb.description);
+        log.label("Model:", kb.embeddingModelId);
+        log.label("Created:", kb.createdAt.toISOString());
+        log.newline();
       }
     });
 
@@ -115,7 +116,7 @@ export function createKnowledgeBaseCommand(): Command {
     .action((id: string) => {
       const resolved = resolveKnowledgeBase(id);
       if (!resolved) {
-        console.error(`Knowledge base not found: ${id}`);
+        log.error(`Knowledge base not found: ${id}`);
         process.exit(1);
       }
 
@@ -148,7 +149,7 @@ export function createKnowledgeBaseCommand(): Command {
       // 5. Delete knowledge base
       kbOps.deleteKnowledgeBase(id);
 
-      console.log(`Knowledge base "${id}" and all associated data removed.`);
+      log.success(`Knowledge base "${id}" and all associated data removed.`);
     });
 
   kb.command("query <id> <query-text>")
@@ -157,7 +158,7 @@ export function createKnowledgeBaseCommand(): Command {
     .action(async (id: string, queryText: string, options: { topK: string }) => {
       const resolved = resolveKnowledgeBase(id);
       if (!resolved) {
-        console.error(`Knowledge base not found: ${id}`);
+        log.error(`Knowledge base not found: ${id}`);
         process.exit(1);
       }
 
@@ -166,7 +167,7 @@ export function createKnowledgeBaseCommand(): Command {
       const vectorDir = path.join(getVectorStoreDir(baseDir), id);
 
       if (!fs.existsSync(vectorDir)) {
-        console.error("No vector store found for this knowledge base.");
+        log.error("No vector store found for this knowledge base.");
         process.exit(1);
       }
 
@@ -175,19 +176,19 @@ export function createKnowledgeBaseCommand(): Command {
       const results = await queryVectorStore(modelConfig, vectorDir, queryText, k);
 
       if (results.length === 0) {
-        console.log("No results found.");
+        log.info("No results found.");
         return;
       }
 
       for (let i = 0; i < results.length; i++) {
         const doc = results[i];
         if (!doc) continue;
-        console.log(`--- Result ${String(i + 1)} ---`);
-        console.log(doc.pageContent);
+        log.header(`--- Result ${String(i + 1)} ---`);
+        log.plain(doc.pageContent);
         if (doc.metadata && Object.keys(doc.metadata).length > 0) {
-          console.log(`  Metadata: ${JSON.stringify(doc.metadata)}`);
+          log.step(`Metadata: ${JSON.stringify(doc.metadata)}`);
         }
-        console.log();
+        log.newline();
       }
     });
 

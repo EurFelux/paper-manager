@@ -1,7 +1,9 @@
+import chalk from "chalk";
 import { Command } from "commander";
 
 import { listConfig, loadMergedConfig, removeConfig, setConfig } from "../config/index.js";
 import { initScope } from "../config/init.js";
+import { log } from "../logger.js";
 
 export function createConfigCommand(): Command {
   const config = new Command("config").description("Manage configuration");
@@ -14,9 +16,9 @@ export function createConfigCommand(): Command {
       const source = options.user ? listConfig({ user: true }) : loadMergedConfig();
       const value: unknown = source[key];
       if (value === undefined) {
-        console.log(`Config "${key}" is not set.`);
+        log.info(`Config "${key}" is not set.`);
       } else {
-        console.log(JSON.stringify(value, null, 2));
+        log.plain(JSON.stringify(value, null, 2));
       }
     });
 
@@ -32,7 +34,7 @@ export function createConfigCommand(): Command {
         value = rawValue;
       }
       setConfig(key, value, { user: options.user });
-      console.log(`Config "${key}" has been set.`);
+      log.success(`Config "${key}" has been set.`);
     });
 
   config
@@ -41,7 +43,7 @@ export function createConfigCommand(): Command {
     .option("--user", "Remove from user config")
     .action((key: string, options: { user?: boolean }) => {
       removeConfig(key, { user: options.user });
-      console.log(`Config "${key}" has been removed.`);
+      log.success(`Config "${key}" has been removed.`);
     });
 
   config
@@ -52,9 +54,9 @@ export function createConfigCommand(): Command {
       const result = options.user ? listConfig({ user: true }) : loadMergedConfig();
 
       if (Object.keys(result).length === 0) {
-        console.log("No config set.");
+        log.info("No config set.");
       } else {
-        console.log(JSON.stringify(result, null, 2));
+        log.plain(JSON.stringify(result, null, 2));
       }
     });
 
@@ -65,12 +67,19 @@ export function createConfigCommand(): Command {
     .action((options: { user?: boolean }) => {
       const scopeLabel = options.user ? "user" : "project";
       const result = initScope({ user: options.user });
-      console.log(`Initializing ${scopeLabel} scope: ${result.baseDir}\n`);
+      log.info(`Initializing ${scopeLabel} scope: ${result.baseDir}`);
+      log.newline();
       for (const item of result.items) {
-        const icon = item.status === "created" ? "+" : "=";
-        console.log(`  [${icon}] ${item.name} (${item.status})`);
+        if (item.status === "created") {
+          console.log(`  ${chalk.green("+")} ${item.name} ${chalk.dim("(created)")}`);
+        } else {
+          console.log(
+            `  ${chalk.dim("=")} ${chalk.dim(item.name)} ${chalk.dim(`(${item.status})`)}`,
+          );
+        }
       }
-      console.log(`\nDone.`);
+      log.newline();
+      log.success("Done.");
     });
 
   return config;

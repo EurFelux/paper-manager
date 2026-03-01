@@ -62,6 +62,7 @@ paper config set defaultEmbeddingModelId my-model --user
 ```
 
 The embedding model config fields:
+
 - `provider`: currently only `"openai"` (works with any OpenAI-compatible API)
 - `model`: the model name (e.g., `"text-embedding-3-small"`)
 - `baseUrl`: optional custom API endpoint
@@ -81,6 +82,7 @@ paper config remove <key> [--user]      # Remove a config key
 ```
 
 Config keys:
+
 - `embeddingModels` — a JSON object of `{ [modelId]: { provider, model, baseUrl?, apiKey, dimensions } }`
 - `defaultEmbeddingModelId` — which model ID to use when none is specified
 
@@ -144,11 +146,13 @@ Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
 ## Common Workflows
 
 ### Start a new research project
+
 1. `paper kb create "my-project" -d "Papers about X"` — create a project-scoped KB
 2. `paper lit add <kb-id> ./paper.pdf -t "Paper Title"` — add papers
 3. `paper kb query <kb-id> "your research question"` — search
 
 ### Manage paper metadata
+
 1. `paper lit list <kb-id>` — find the literature ID
 2. `paper lit update <kb-id> <lit-id> -a "Author Name" --keywords "ML,NLP"`
 3. `paper lit note set <lit-id> takeaway "Key insight from this paper"`

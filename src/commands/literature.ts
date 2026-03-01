@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import chalk from "chalk";
 import cliProgress from "cli-progress";
 import { Command } from "commander";
 
@@ -16,6 +17,7 @@ import * as projectKb from "../db/project/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
+import { log } from "../logger.js";
 import { extractPdfContent } from "../pdf/extractor.js";
 import type { KnowledgeBaseMetadata, LiteratureMetadata } from "../types/index.js";
 import { createVectorStore, loadVectorStore } from "../vector-store/index.js";
@@ -50,7 +52,7 @@ export function createLiteratureCommand(): Command {
     .action(async (kbId: string, pdfPath: string, options: { title?: string }) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
-        console.error(`Knowledge base not found: ${kbId}`);
+        log.error(`Knowledge base not found: ${kbId}`);
         process.exit(1);
       }
 
@@ -61,15 +63,15 @@ export function createLiteratureCommand(): Command {
       // Resolve PDF path
       const absolutePdfPath = path.resolve(pdfPath);
       if (!fs.existsSync(absolutePdfPath)) {
-        console.error(`PDF file not found: ${absolutePdfPath}`);
+        log.error(`PDF file not found: ${absolutePdfPath}`);
         process.exit(1);
       }
 
       const title = options.title ?? path.basename(pdfPath, path.extname(pdfPath));
 
-      console.log(`Extracting PDF content...`);
+      log.info("Extracting PDF content...");
       const docs = await extractPdfContent(absolutePdfPath);
-      console.log(`  Extracted ${String(docs.length)} pages.`);
+      log.step(`Extracted ${String(docs.length)} pages.`);
 
       // Create literature record
       const literature = litOps.createLiterature({
@@ -90,13 +92,13 @@ export function createLiteratureCommand(): Command {
       fs.copyFileSync(absolutePdfPath, path.join(pdfDir, `${literature.id}.pdf`));
 
       // Split text and add to vector store
-      console.log(`Splitting text...`);
+      log.info("Splitting text...");
       const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 200,
       });
       const splitDocs = await splitter.splitDocuments(docs);
-      console.log(`  Created ${String(splitDocs.length)} chunks.`);
+      log.step(`Created ${String(splitDocs.length)} chunks.`);
 
       // Add literature ID metadata to each chunk
       for (const doc of splitDocs) {
@@ -106,7 +108,7 @@ export function createLiteratureCommand(): Command {
       const vectorDir = path.join(getVectorStoreDir(baseDir), kbId);
       const modelConfig = getModelConfig(kb.embeddingModelId);
 
-      console.log(`Embedding and storing vectors...`);
+      log.info("Embedding and storing vectors...");
       const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
       bar.start(splitDocs.length, 0);
 
@@ -123,8 +125,8 @@ export function createLiteratureCommand(): Command {
       bar.update(splitDocs.length);
       bar.stop();
 
-      console.log(`Literature added: ${literature.id}`);
-      console.log(`  Title: ${literature.title}`);
+      log.success(`Literature added: ${literature.id}`);
+      log.label("Title:", literature.title);
     });
 
   // ─── lit remove ────────────────────────────────────────────
@@ -135,7 +137,7 @@ export function createLiteratureCommand(): Command {
     .action((kbId: string, id: string) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
-        console.error(`Knowledge base not found: ${kbId}`);
+        log.error(`Knowledge base not found: ${kbId}`);
         process.exit(1);
       }
 
@@ -145,7 +147,7 @@ export function createLiteratureCommand(): Command {
 
       const literature = litOps.getLiterature(id);
       if (!literature) {
-        console.error(`Literature not found: ${id}`);
+        log.error(`Literature not found: ${id}`);
         process.exit(1);
       }
 
@@ -157,7 +159,7 @@ export function createLiteratureCommand(): Command {
 
       // Delete literature record
       litOps.deleteLiterature(id);
-      console.log(`Literature "${id}" removed.`);
+      log.success(`Literature "${id}" removed.`);
     });
 
   // ─── lit update ────────────────────────────────────────────
@@ -188,7 +190,7 @@ export function createLiteratureCommand(): Command {
       ) => {
         const resolved = resolveKnowledgeBase(kbId);
         if (!resolved) {
-          console.error(`Knowledge base not found: ${kbId}`);
+          log.error(`Knowledge base not found: ${kbId}`);
           process.exit(1);
         }
 
@@ -207,11 +209,11 @@ export function createLiteratureCommand(): Command {
 
         const updated = litOps.updateLiterature(id, input);
         if (!updated) {
-          console.error(`Literature not found: ${id}`);
+          log.error(`Literature not found: ${id}`);
           process.exit(1);
         }
 
-        console.log(`Literature "${id}" updated.`);
+        log.success(`Literature "${id}" updated.`);
       },
     );
 
@@ -223,7 +225,7 @@ export function createLiteratureCommand(): Command {
     .action((kbId: string) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
-        console.error(`Knowledge base not found: ${kbId}`);
+        log.error(`Knowledge base not found: ${kbId}`);
         process.exit(1);
       }
 
@@ -231,16 +233,16 @@ export function createLiteratureCommand(): Command {
       const literatures = litOps.listLiteratures(kbId);
 
       if (literatures.length === 0) {
-        console.log("No literatures found.");
+        log.info("No literatures found.");
         return;
       }
 
       for (const l of literatures) {
-        console.log(`${l.id}`);
-        console.log(`  Title: ${l.title}`);
-        if (l.author) console.log(`  Author: ${l.author}`);
-        console.log(`  Created: ${l.createdAt.toISOString()}`);
-        console.log();
+        log.header(l.id);
+        log.label("Title:", l.title);
+        if (l.author) log.label("Author:", l.author);
+        log.label("Created:", l.createdAt.toISOString());
+        log.newline();
       }
     });
 
@@ -252,7 +254,7 @@ export function createLiteratureCommand(): Command {
     .action((kbId: string, id: string) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
-        console.error(`Knowledge base not found: ${kbId}`);
+        log.error(`Knowledge base not found: ${kbId}`);
         process.exit(1);
       }
 
@@ -260,7 +262,7 @@ export function createLiteratureCommand(): Command {
       const literature = litOps.getLiterature(id);
 
       if (!literature) {
-        console.error(`Literature not found: ${id}`);
+        log.error(`Literature not found: ${id}`);
         process.exit(1);
       }
 
@@ -277,18 +279,18 @@ export function createLiteratureCommand(): Command {
     .action((litId: string) => {
       const literature = findLiterature(litId);
       if (!literature) {
-        console.error(`Literature not found: ${litId}`);
+        log.error(`Literature not found: ${litId}`);
         process.exit(1);
       }
 
       const entries = Object.entries(literature.notes);
       if (entries.length === 0) {
-        console.log("No notes found.");
+        log.info("No notes found.");
         return;
       }
 
       for (const [key, value] of entries) {
-        console.log(`${key}: ${value}`);
+        log.label(`${key}:`, value);
       }
     });
 
@@ -298,14 +300,14 @@ export function createLiteratureCommand(): Command {
     .action((litId: string, key: string, value: string) => {
       const found = findLiteratureWithScope(litId);
       if (!found) {
-        console.error(`Literature not found: ${litId}`);
+        log.error(`Literature not found: ${litId}`);
         process.exit(1);
       }
 
       const litOps = getLitOps(found.scope);
       const newNotes = { ...found.literature.notes, [key]: value };
       litOps.updateLiterature(litId, { notes: newNotes });
-      console.log(`Note "${key}" set on literature "${litId}".`);
+      log.success(`Note "${key}" set on literature "${litId}".`);
     });
 
   note
@@ -314,7 +316,7 @@ export function createLiteratureCommand(): Command {
     .action((litId: string, key: string) => {
       const found = findLiteratureWithScope(litId);
       if (!found) {
-        console.error(`Literature not found: ${litId}`);
+        log.error(`Literature not found: ${litId}`);
         process.exit(1);
       }
 
@@ -322,7 +324,7 @@ export function createLiteratureCommand(): Command {
       const newNotes = { ...found.literature.notes };
       delete newNotes[key];
       litOps.updateLiterature(litId, { notes: newNotes });
-      console.log(`Note "${key}" removed from literature "${litId}".`);
+      log.success(`Note "${key}" removed from literature "${litId}".`);
     });
 
   return lit;
@@ -345,23 +347,23 @@ function findLiteratureWithScope(
 }
 
 function printLiterature(lit: LiteratureMetadata): void {
-  console.log(`ID: ${lit.id}`);
-  console.log(`Title: ${lit.title}`);
-  if (lit.titleTranslation) console.log(`Title (translated): ${lit.titleTranslation}`);
-  if (lit.author) console.log(`Author: ${lit.author}`);
-  if (lit.abstract) console.log(`Abstract: ${lit.abstract}`);
-  if (lit.summary) console.log(`Summary: ${lit.summary}`);
-  if (lit.keywords.length > 0) console.log(`Keywords: ${lit.keywords.join(", ")}`);
-  if (lit.url) console.log(`URL: ${lit.url}`);
-  console.log(`Knowledge Base: ${lit.knowledgeBaseId}`);
-  console.log(`Created: ${lit.createdAt.toISOString()}`);
-  console.log(`Updated: ${lit.updatedAt.toISOString()}`);
+  log.header(lit.id);
+  log.label("Title:", lit.title);
+  if (lit.titleTranslation) log.label("Title (translated):", lit.titleTranslation);
+  if (lit.author) log.label("Author:", lit.author);
+  if (lit.abstract) log.label("Abstract:", lit.abstract);
+  if (lit.summary) log.label("Summary:", lit.summary);
+  if (lit.keywords.length > 0) log.label("Keywords:", lit.keywords.join(", "));
+  if (lit.url) log.label("URL:", lit.url);
+  log.label("Knowledge Base:", lit.knowledgeBaseId);
+  log.label("Created:", lit.createdAt.toISOString());
+  log.label("Updated:", lit.updatedAt.toISOString());
 
   const noteEntries = Object.entries(lit.notes);
   if (noteEntries.length > 0) {
-    console.log(`Notes:`);
+    log.plain(chalk.dim("Notes:"));
     for (const [key, value] of noteEntries) {
-      console.log(`  ${key}: ${value}`);
+      log.label(`  ${key}:`, value);
     }
   }
 }
