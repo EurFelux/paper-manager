@@ -5,6 +5,10 @@
   "keywords": [],
   "license": "MIT",
   "author": "EurFelux",
+  "homepage": "https://github.com/EurFelux/paper-manager",
+  "repository": {
+    "url": "https://github.com/EurFelux/paper-manager"
+  },
   "bin": {
     "paper": "dist/index.js"
   },
