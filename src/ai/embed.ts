@@ -25,10 +25,18 @@ export async function embedMany(
   texts: string[],
 ): Promise<number[][]> {
   const model = createEmbeddingModel(config);
-  const result = await aiEmbedMany({
-    model,
-    values: texts,
-    providerOptions: buildProviderOptions(config),
-  });
-  return result.embeddings;
+  const providerOptions = buildProviderOptions(config);
+
+  if (config.batchSize == null || texts.length <= config.batchSize) {
+    const result = await aiEmbedMany({ model, values: texts, providerOptions });
+    return result.embeddings;
+  }
+
+  const embeddings: number[][] = [];
+  for (let i = 0; i < texts.length; i += config.batchSize) {
+    const batch = texts.slice(i, i + config.batchSize);
+    const result = await aiEmbedMany({ model, values: batch, providerOptions });
+    embeddings.push(...result.embeddings);
+  }
+  return embeddings;
 }
