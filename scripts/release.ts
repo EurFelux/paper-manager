@@ -47,7 +47,7 @@ exec("pnpm generate:schema");
 
 // 6. Git tag & push
 console.log(`Tagging ${tag}...`);
-exec(`git tag ${tag}`);
+exec(`git tag -a ${tag} -m "Release ${tag}"`);
 exec(`git push origin main --tags`);
 
 // 7. GitHub Release
