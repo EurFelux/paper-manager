@@ -1,6 +1,7 @@
 import { Command } from "commander";
 
 import { listConfig, loadMergedConfig, removeConfig, setConfig } from "../config/index.js";
+import { initScope } from "../config/init.js";
 
 export function createConfigCommand(): Command {
   const config = new Command("config").description("Manage configuration");
@@ -55,6 +56,21 @@ export function createConfigCommand(): Command {
       } else {
         console.log(JSON.stringify(result, null, 2));
       }
+    });
+
+  config
+    .command("init")
+    .description("Initialize data directory for current scope")
+    .option("--user", "Initialize user scope (~/.paper-manager)")
+    .action((options: { user?: boolean }) => {
+      const scopeLabel = options.user ? "user" : "project";
+      const result = initScope({ user: options.user });
+      console.log(`Initializing ${scopeLabel} scope: ${result.baseDir}\n`);
+      for (const item of result.items) {
+        const icon = item.status === "created" ? "+" : "=";
+        console.log(`  [${icon}] ${item.name} (${item.status})`);
+      }
+      console.log(`\nDone.`);
     });
 
   return config;

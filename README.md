@@ -22,6 +22,9 @@ bun install -g paper-manager
 ## Quick Start
 
 ```bash
+# Initialize data directory
+paper config init --user
+
 # Configure an embedding model
 paper config set embeddingModels '{"openai-small":{"provider":"openai","model":"text-embedding-3-small","apiKey":"sk-...","dimensions":1536}}' --user
 paper config set defaultEmbeddingModelId '"openai-small"' --user
@@ -41,10 +44,11 @@ paper kb query <knowledge-base-id> "attention mechanism"
 ### Configuration (`paper config`)
 
 ```bash
-paper config get <key> [--user]       # Get a config value
+paper config init [--user]               # Initialize data directory structure
+paper config get <key> [--user]          # Get a config value
 paper config set <key> <value> [--user]  # Set a config value
-paper config remove <key> [--user]    # Remove a config key
-paper config list [--user]            # List all config
+paper config remove <key> [--user]       # Remove a config key
+paper config list [--user]               # List all config
 ```
 
 ### Knowledge Base (`paper kb`)

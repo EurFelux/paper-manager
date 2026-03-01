@@ -71,6 +71,8 @@ Two tables (`knowledge_bases`, `literatures`) with identical schema in both user
 
 ### Critical Flows
 
+**Initializing scope** (`paper config init`): Determine base dir → create base dir → write empty `config.json` → open + init SQLite → create `pdfs/` and `vector-stores/` dirs. Idempotent: skips existing items. Logic in `src/config/init.ts` (separate file to avoid circular dep with `db/index.ts`).
+
 **Adding literature** (`paper lit add`): PDF → page-split → chunk (1000 chars, 200 overlap) → create SQLite record → copy PDF → embed chunks → upsert FAISS store.
 
 **Semantic query** (`paper kb query`): Locate KB (project-first) → load embedding config → embed query → FAISS similaritySearch → return top-k.

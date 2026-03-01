@@ -77,6 +77,7 @@ The embedding model config fields:
 ### paper config — Configuration Management
 
 ```bash
+paper config init [--user]              # Initialize data directory (config, db, subdirs)
 paper config list [--user]              # Show all config (merged or user-only)
 paper config get <key> [--user]         # Get a specific config value
 paper config set <key> <value> [--user] # Set a config value (value is parsed as JSON, falls back to string)
@@ -147,8 +148,9 @@ Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
 ## Common Workflows
 
 ### First-time setup
-1. `paper config set embeddingModels '<json>' --user` — configure embedding model
-2. `paper config set defaultEmbeddingModelId <id> --user` — set default model
+1. `paper config init --user` — initialize user data directory
+2. `paper config set embeddingModels '<json>' --user` — configure embedding model
+3. `paper config set defaultEmbeddingModelId <id> --user` — set default model
 
 ### Start a new research project
 1. `paper kb create "my-project" -d "Papers about X"` — create a project-scoped KB
