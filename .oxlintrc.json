@@ -1,8 +1,10 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": null,
+  "plugins": ["import"],
   "categories": {},
-  "rules": {},
+  "rules": {
+    "import/consistent-type-specifier-style": "error"
+  },
   "settings": {
     "jsx-a11y": {
       "polymorphicPropName": null,
