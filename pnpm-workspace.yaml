@@ -1,4 +1,5 @@
 onlyBuiltDependencies:
+  - "@j178/prek"
   - better-sqlite3
   - esbuild
   - faiss-node

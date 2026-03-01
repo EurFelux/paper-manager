@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: lint
+        name: oxlint --fix
+        entry: pnpm lint:fix
+        language: system
+        types: [ts]
+        pass_filenames: false
+      - id: fmt
+        name: oxfmt
+        entry: pnpm fmt
+        language: system
+        types: [ts]
+        pass_filenames: false
