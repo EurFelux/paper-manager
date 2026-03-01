@@ -13,6 +13,7 @@ A paper management system. See `docs/architecture.md` for details.
 - `pnpm lint:fix` — Auto-fix lint issues
 - `pnpm fmt` — Format code with oxfmt
 - `pnpm fmt:check` — Check formatting without modifying files
+- `pnpm build` — Build with `tsc` (outputs to `dist`)
 
 ## Tooling
 
