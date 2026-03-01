@@ -13,12 +13,14 @@
     "paper": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "config.schema.json"
   ],
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "generate:schema": "tsx scripts/generate-schema.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --type-aware",
@@ -48,6 +50,7 @@
     "oxfmt": "^0.35.0",
     "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.15.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "engines": {

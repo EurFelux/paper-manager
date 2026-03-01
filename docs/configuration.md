@@ -6,9 +6,9 @@ Paper Manager uses JSON configuration files (`config.json`) stored in the data d
 
 Configuration is split into two scopes. Project-scope values override user-scope values for the same key.
 
-| Scope | Path | Description |
-|-------|------|-------------|
-| user | `~/.paper-manager/config.json` | Global config shared across all projects |
+| Scope   | Path                           | Description                                        |
+| ------- | ------------------------------ | -------------------------------------------------- |
+| user    | `~/.paper-manager/config.json` | Global config shared across all projects           |
 | project | `./.paper-manager/config.json` | Project-specific config, can be version-controlled |
 
 ## Fields
@@ -20,13 +20,13 @@ Configuration is split into two scopes. Project-scope values override user-scope
 
 A map of embedding model configurations. Each key is a user-defined model ID, and the value is a model config object with the following fields:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `provider` | `"openai"` | Yes | Model provider. Currently only `"openai"` is supported (any OpenAI-compatible API works) |
-| `model` | `string` | Yes | Model name, e.g. `"text-embedding-3-small"` |
-| `dimensions` | `number` | Yes | Vector dimensions (positive integer). Must match the model's actual output dimensions |
-| `apiKey` | `string` | Yes | API key |
-| `baseUrl` | `string` | No | Custom API endpoint URL. Use this for OpenAI-compatible third-party services |
+| Field        | Type       | Required | Description                                                                              |
+| ------------ | ---------- | -------- | ---------------------------------------------------------------------------------------- |
+| `provider`   | `"openai"` | Yes      | Model provider. Currently only `"openai"` is supported (any OpenAI-compatible API works) |
+| `model`      | `string`   | Yes      | Model name, e.g. `"text-embedding-3-small"`                                              |
+| `dimensions` | `number`   | Yes      | Vector dimensions (positive integer). Must match the model's actual output dimensions    |
+| `apiKey`     | `string`   | Yes      | API key                                                                                  |
+| `baseUrl`    | `string`   | No       | Custom API endpoint URL. Use this for OpenAI-compatible third-party services             |
 
 ### `defaultEmbeddingModelId`
 

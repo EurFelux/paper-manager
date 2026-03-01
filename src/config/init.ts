@@ -32,7 +32,9 @@ export function initScope(options?: { user?: boolean }): InitScopeResult {
   if (fs.existsSync(configPath)) {
     items.push({ name: "config.json", status: "exists" });
   } else {
-    writeConfigFile(configPath, {});
+    writeConfigFile(configPath, {
+      $schema: "https://raw.githubusercontent.com/EurFelux/paper-manager/main/config.schema.json",
+    });
     items.push({ name: "config.json", status: "created" });
   }
 
