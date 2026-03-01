@@ -14,7 +14,9 @@
         "properties": {
           "provider": {
             "type": "string",
-            "enum": ["openai"]
+            "enum": [
+              "openai"
+            ]
           },
           "model": {
             "type": "string"
@@ -32,7 +34,11 @@
             "maximum": 9007199254740991
           }
         },
-        "required": ["provider", "model", "apiKey", "dimensions"],
+        "required": [
+          "provider",
+          "model",
+          "apiKey"
+        ],
         "additionalProperties": false
       }
     },
@@ -41,6 +47,8 @@
       "minLength": 1
     }
   },
-  "required": ["embeddingModels"],
+  "required": [
+    "embeddingModels"
+  ],
   "additionalProperties": false
 }

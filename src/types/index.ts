@@ -7,7 +7,7 @@ export const EmbeddingModelConfigSchema = z.object({
   model: z.string(),
   baseUrl: z.url().optional(),
   apiKey: z.string(),
-  dimensions: z.number().int().positive(),
+  dimensions: z.number().int().positive().optional(),
 });
 
 export type EmbeddingModelConfig = z.infer<typeof EmbeddingModelConfigSchema> & {
