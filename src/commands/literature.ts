@@ -112,8 +112,11 @@ export function createLiteratureCommand(): Command {
       const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
       bar.start(splitDocs.length, 0);
 
-      // Check if vector store already exists
-      if (fs.existsSync(vectorDir)) {
+      // Check if both FAISS index files exist (not just the directory)
+      const hasIndex =
+        fs.existsSync(path.join(vectorDir, "faiss.index")) &&
+        fs.existsSync(path.join(vectorDir, "docstore.json"));
+      if (hasIndex) {
         const store = await loadVectorStore(modelConfig, vectorDir);
         await store.addDocuments(splitDocs);
         await store.save(vectorDir);
