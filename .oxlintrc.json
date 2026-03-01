@@ -5,6 +5,7 @@
   "categories": {},
   "rules": {
     "import/consistent-type-specifier-style": "error",
+    "import/no-cycle": "error",
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error"
   },
