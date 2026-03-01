@@ -14,23 +14,6 @@ description: >
 
 `paper` is a local-first CLI tool for managing academic papers with AI-powered semantic search. It stores data in SQLite databases and uses FAISS vector stores for similarity search.
 
-## Installation
-
-The tool is published on npm as `paper-manager`. It requires **Node.js >= 24**.
-
-```bash
-# Global install (recommended — makes `paper` available everywhere)
-npm install -g paper-manager
-
-# Or with pnpm
-pnpm add -g paper-manager
-
-# Verify installation
-paper --version
-```
-
-After installing, run `paper --help` to see available commands. You'll need to configure an embedding model before using knowledge base features — see the Setup Workflow section below.
-
 ## Core Concepts
 
 ### Scope: User vs Project
@@ -53,11 +36,24 @@ Config (embedding models)
 
 You must configure an embedding model before creating a knowledge base, and you must create a knowledge base before adding literature.
 
-## Setup Workflow
+## Troubleshooting: Installation & Setup
 
-Before using `paper`, configure at least one embedding model. The config value for `embeddingModels` is a JSON object mapping model IDs to their settings:
+The user should already have `paper` installed and configured. Only use this section if something is missing.
+
+### Installation (if `paper` command is not found)
 
 ```bash
+npm install -g paper-manager    # or: pnpm add -g paper-manager
+```
+
+Requires **Node.js >= 24**. Verify with `paper --version`.
+
+### Config setup (if commands fail due to missing config)
+
+```bash
+# If data directory is missing or incomplete, initialize it first
+paper config init [--user]
+
 # Set up an embedding model (OpenAI-compatible provider)
 paper config set embeddingModels '{"my-model": {"provider": "openai", "model": "text-embedding-3-small", "apiKey": "sk-...", "dimensions": 1536}}' --user
 
@@ -146,11 +142,6 @@ paper lit note remove <lit-id> <key>            # Remove a note
 Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
 
 ## Common Workflows
-
-### First-time setup
-1. `paper config init --user` — initialize user data directory
-2. `paper config set embeddingModels '<json>' --user` — configure embedding model
-3. `paper config set defaultEmbeddingModelId <id> --user` — set default model
 
 ### Start a new research project
 1. `paper kb create "my-project" -d "Papers about X"` — create a project-scoped KB
