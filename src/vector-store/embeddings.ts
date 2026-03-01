@@ -1,6 +1,7 @@
 import { Embeddings } from "@langchain/core/embeddings";
-import type { EmbeddingModelConfig } from "../types/index.js";
+
 import { embed, embedMany } from "../ai/embed.js";
+import type { EmbeddingModelConfig } from "../types/index.js";
 
 export class AiSdkEmbeddings extends Embeddings {
   private readonly config: EmbeddingModelConfig;

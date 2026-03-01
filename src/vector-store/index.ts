@@ -1,5 +1,6 @@
-import type { Document } from "@langchain/core/documents";
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
+import type { Document } from "@langchain/core/documents";
+
 import type { EmbeddingModelConfig } from "../types/index.js";
 import { AiSdkEmbeddings } from "./embeddings.js";
 

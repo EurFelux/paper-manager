@@ -1,5 +1,6 @@
-import { listConfig, loadMergedConfig, removeConfig, setConfig } from "../config/index.js";
 import { Command } from "commander";
+
+import { listConfig, loadMergedConfig, removeConfig, setConfig } from "../config/index.js";
 
 export function createConfigCommand(): Command {
   const config = new Command("config").description("Manage configuration");

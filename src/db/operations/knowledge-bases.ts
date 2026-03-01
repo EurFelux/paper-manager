@@ -1,5 +1,7 @@
 import * as crypto from "node:crypto";
+
 import type BetterSqlite3 from "better-sqlite3";
+
 import type { KnowledgeBaseMetadata } from "../../types/index.js";
 import { dbRowToKnowledgeBase } from "../index.js";
 

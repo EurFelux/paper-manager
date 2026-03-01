@@ -1,6 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+
 import { Command } from "commander";
+
 import {
   getConfig,
   getModelConfig,
@@ -10,11 +12,11 @@ import {
   getVectorStoreDir,
 } from "../config/index.js";
 import * as projectKb from "../db/project/knowledge-bases.js";
-import * as userKb from "../db/user/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
+import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
-import { queryVectorStore } from "../vector-store/index.js";
 import type { KnowledgeBaseMetadata } from "../types/index.js";
+import { queryVectorStore } from "../vector-store/index.js";
 
 function resolveKnowledgeBase(
   id: string,

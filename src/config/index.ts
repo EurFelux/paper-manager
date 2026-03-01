@@ -1,9 +1,11 @@
 import * as fs from "node:fs";
-import * as path from "node:path";
 import * as os from "node:os";
+import * as path from "node:path";
+
 import * as z from "zod";
-import { EmbeddingModelConfigSchema } from '../types/index.js';
+
 import type { EmbeddingModelConfig } from '../types/index.js';
+import { EmbeddingModelConfigSchema } from '../types/index.js';
 
 // ─── Path Utilities ─────────────────────────────────────────
 

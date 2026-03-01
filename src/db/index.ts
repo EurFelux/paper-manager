@@ -1,10 +1,12 @@
-import * as path from "node:path";
 import * as fs from "node:fs";
-import Database from "better-sqlite3";
+import * as path from "node:path";
+
 import type BetterSqlite3 from "better-sqlite3";
-import { KnowledgeBaseMetadataSchema, LiteratureMetadataSchema } from "../types/index.js";
-import type { KnowledgeBaseMetadata, LiteratureMetadata } from "../types/index.js";
+import Database from "better-sqlite3";
+
 import { getProjectDataDir, getUserDataDir } from "../config/index.js";
+import type { KnowledgeBaseMetadata, LiteratureMetadata } from "../types/index.js";
+import { KnowledgeBaseMetadataSchema, LiteratureMetadataSchema } from "../types/index.js";
 import { CREATE_KNOWLEDGE_BASES_TABLE, CREATE_LITERATURES_TABLE } from "./schema.js";
 
 // ─── Type Guard ─────────────────────────────────────────────

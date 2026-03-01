@@ -1,9 +1,12 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["import"],
+  "jsPlugins": ["eslint-plugin-simple-import-sort"],
   "categories": {},
   "rules": {
-    "import/consistent-type-specifier-style": "error"
+    "import/consistent-type-specifier-style": "error",
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error"
   },
   "settings": {
     "jsx-a11y": {

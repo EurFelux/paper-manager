@@ -1,4 +1,5 @@
 import { embed as aiEmbed, embedMany as aiEmbedMany } from "ai";
+
 import type { EmbeddingModelConfig } from "../types/index.js";
 import { createEmbeddingModel } from "./provider.js";
 
