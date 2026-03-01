@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents when working with code in this r
 
 ## Project Overview
 
-A minimal TypeScript project starter template with linting and formatting tooling. Uses pnpm as package manager.
+A paper management system. See `docs/architecture.md` for details.
 
 ## Commands
 
