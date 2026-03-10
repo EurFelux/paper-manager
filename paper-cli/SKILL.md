@@ -3,10 +3,10 @@ name: paper-cli
 description: >
   Guide for using the `paper` CLI tool — a local academic paper management system with AI-powered
   vector search. Use this skill whenever the user wants to manage academic papers, create knowledge
-  bases, add PDFs to a knowledge base, search papers semantically, configure embedding models,
+  bases, add files (PDF, TXT, MD, TEX, etc.) to a knowledge base, search papers semantically, configure embedding models,
   or manage literature metadata and notes. Also trigger when the user mentions "paper" CLI,
   knowledge bases for research, literature management, or wants to query their paper collection.
-  Even if the user just says something like "add this PDF" or "search my papers" in a project
+  Even if the user just says something like "add this PDF", "add this text file", or "search my papers" in a project
   that uses paper-manager, this skill should activate.
 ---
 
@@ -30,7 +30,7 @@ Project-level config overrides user-level config. When looking up a knowledge ba
 ```
 Config (embedding models)
   └── Knowledge Base (has a name, description, and embedding model)
-        └── Literature (a paper with metadata, PDF, and vector embeddings)
+        └── Literature (a paper with metadata, source file, and vector embeddings)
               └── Notes (key-value pairs for personal annotations)
 ```
 
@@ -108,9 +108,10 @@ The `<id>` for knowledge bases is a UUID assigned at creation time. Use `paper k
 ### paper lit — Literature Management
 
 ```bash
-# Add a paper (extracts PDF, splits text, creates embeddings)
-paper lit add <kb-id> <pdf-path> [-t <title>]
-# Title defaults to the PDF filename if not specified
+# Add a paper (extracts content, splits text, creates embeddings)
+# Supports PDF, TXT, MD, TEX, and other text-based formats
+paper lit add <kb-id> <file-path> [-t <title>]
+# Title defaults to the filename (without extension) if not specified
 
 # List papers in a knowledge base
 paper lit list <kb-id>
@@ -128,7 +129,7 @@ paper lit update <kb-id> <lit-id> [options]
 #   --url <url>
 #   --keywords <comma-separated-keywords>
 
-# Remove a paper (deletes DB record, PDF file; vectors remain in store)
+# Remove a paper (deletes DB record, source file; vectors remain in store)
 paper lit remove <kb-id> <lit-id>
 ```
 
@@ -149,7 +150,7 @@ Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
 ### Start a new research project
 
 1. `paper kb create "my-project" -d "Papers about X"` — create a project-scoped KB
-2. `paper lit add <kb-id> ./paper.pdf -t "Paper Title"` — add papers
+2. `paper lit add <kb-id> ./paper.pdf -t "Paper Title"` — add papers (also works with .txt, .md, .tex)
 3. `paper kb query <kb-id> "your research question"` — search
 
 ### Manage paper metadata
@@ -161,7 +162,8 @@ Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
 ## Important Notes
 
 - All IDs (knowledge base, literature) are UUIDs — always use `list` commands to look them up
-- Adding a paper (`lit add`) extracts the PDF, splits it into chunks, and creates vector embeddings — this calls the embedding API and may take some time
-- The `kb remove` command is destructive: it deletes the knowledge base, all its literatures, PDFs, and vector stores
+- Adding a paper (`lit add`) extracts the file content (PDF or text), splits it into chunks, and creates vector embeddings — this calls the embedding API and may take some time
+- Text files have a 10 MB size limit
+- The `kb remove` command is destructive: it deletes the knowledge base, all its literatures, source files, and vector stores
 - The `--user` flag on `config`/`kb create` controls scope; omitting it uses project scope
 - Config values passed to `config set` are parsed as JSON first; if JSON parsing fails, the raw string is stored
