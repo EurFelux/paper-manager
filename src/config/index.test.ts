@@ -6,8 +6,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   getDefaultModelConfig,
+  getFilesDir,
   getModelConfig,
-  getPdfDir,
   getVectorStoreDir,
   readConfigFile,
   writeConfigFile,
@@ -15,9 +15,9 @@ import {
 
 // ─── Path Utilities ──────────────────────────────────────────
 
-describe("getPdfDir", () => {
-  it("appends pdfs to base path", () => {
-    expect(getPdfDir("/data")).toBe(path.join("/data", "pdfs"));
+describe("getFilesDir", () => {
+  it("appends files to base path", () => {
+    expect(getFilesDir("/data")).toBe(path.join("/data", "files"));
   });
 });
 

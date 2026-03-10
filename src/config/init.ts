@@ -3,7 +3,7 @@ import * as path from "node:path";
 
 import { initializeDatabase, openDatabase } from "../db/index.js";
 import {
-  getPdfDir,
+  getFilesDir,
   getProjectDataDir,
   getUserDataDir,
   getVectorStoreDir,
@@ -12,7 +12,7 @@ import {
 
 export interface InitScopeResult {
   baseDir: string;
-  items: Array<{ name: string; status: "created" | "exists" }>;
+  items: Array<{ name: string; status: "created" | "exists" | "migrated" }>;
 }
 
 export function initScope(options?: { user?: boolean }): InitScopeResult {
@@ -47,13 +47,29 @@ export function initScope(options?: { user?: boolean }): InitScopeResult {
   db.close();
   items.push({ name: "papers.db", status: dbExisted ? "exists" : "created" });
 
-  // 4. pdfs/ directory
-  const pdfDir = getPdfDir(baseDir);
-  if (fs.existsSync(pdfDir)) {
-    items.push({ name: "pdfs/", status: "exists" });
+  // 4. files/ directory (with migration from pdfs/)
+  const filesDir = getFilesDir(baseDir);
+  const legacyPdfsDir = path.join(baseDir, "pdfs");
+  const legacyExists = fs.existsSync(legacyPdfsDir);
+  const filesExists = fs.existsSync(filesDir);
+
+  if (legacyExists && !filesExists) {
+    fs.renameSync(legacyPdfsDir, filesDir);
+    items.push({ name: "pdfs/ → files/", status: "migrated" });
+  } else if (legacyExists && filesExists) {
+    for (const entry of fs.readdirSync(legacyPdfsDir, { withFileTypes: true })) {
+      const dest = path.join(filesDir, entry.name);
+      if (!fs.existsSync(dest)) {
+        fs.renameSync(path.join(legacyPdfsDir, entry.name), dest);
+      }
+    }
+    fs.rmSync(legacyPdfsDir, { recursive: true, force: true });
+    items.push({ name: "pdfs/ → files/", status: "migrated" });
+  } else if (filesExists) {
+    items.push({ name: "files/", status: "exists" });
   } else {
-    fs.mkdirSync(pdfDir, { recursive: true });
-    items.push({ name: "pdfs/", status: "created" });
+    fs.mkdirSync(filesDir, { recursive: true });
+    items.push({ name: "files/", status: "created" });
   }
 
   // 5. vector-stores/ directory

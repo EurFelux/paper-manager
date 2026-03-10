@@ -1,33 +1,31 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { getPdfDir, getVectorStoreDir } from "./index.js";
+import { getFilesDir, getProjectDataDir, getVectorStoreDir } from "./index.js";
 import { initScope } from "./init.js";
 
-// initScope() reads getUserDataDir/getProjectDataDir which are module-level constants.
-// To test it in isolation, we call it with { user: true } and override HOME,
-// but since the paths are computed at import time, we instead test with a mock approach:
-// We'll directly call the function and verify the result structure + filesystem effects
-// by temporarily pointing to a temp directory via the user scope.
+// initScope() uses getProjectDataDir() which is a module-level constant resolved at import time.
+// This means process.chdir() cannot redirect it. We must clean up the actual project data dir
+// between tests to ensure isolation.
 
-// However, since getUserDataDir() returns a fixed path based on os.homedir() at import time,
-// we need to test using the project scope with chdir to a temp directory.
-
-let tmpDir: string;
 let origCwd: string;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "paper-test-"));
   origCwd = process.cwd();
-  process.chdir(tmpDir);
+  const projectDir = getProjectDataDir();
+  if (fs.existsSync(projectDir)) {
+    fs.rmSync(projectDir, { recursive: true, force: true });
+  }
 });
 
 afterEach(() => {
   process.chdir(origCwd);
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  const projectDir = getProjectDataDir();
+  if (fs.existsSync(projectDir)) {
+    fs.rmSync(projectDir, { recursive: true, force: true });
+  }
 });
 
 describe("initScope (project scope)", () => {
@@ -43,7 +41,7 @@ describe("initScope (project scope)", () => {
     expect(fs.existsSync(baseDir)).toBe(true);
     expect(fs.existsSync(path.join(baseDir, "config.json"))).toBe(true);
     expect(fs.existsSync(path.join(baseDir, "papers.db"))).toBe(true);
-    expect(fs.existsSync(getPdfDir(baseDir))).toBe(true);
+    expect(fs.existsSync(getFilesDir(baseDir))).toBe(true);
     expect(fs.existsSync(getVectorStoreDir(baseDir))).toBe(true);
   });
 

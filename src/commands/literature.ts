@@ -7,8 +7,8 @@ import cliProgress from "cli-progress";
 import { Command } from "commander";
 
 import {
+  getFilesDir,
   getModelConfig,
-  getPdfDir,
   getProjectDataDir,
   getUserDataDir,
   getVectorStoreDir,
@@ -17,7 +17,7 @@ import * as projectKb from "../db/project/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
-import { extractPdfContent } from "../extractor/index.js";
+import { extractContent } from "../extractor/index.js";
 import { log } from "../logger.js";
 import type { KnowledgeBaseMetadata, LiteratureMetadata } from "../types/index.js";
 import { createVectorStore, loadVectorStore } from "../vector-store/index.js";
@@ -46,10 +46,10 @@ export function createLiteratureCommand(): Command {
   // ─── lit add ───────────────────────────────────────────────
 
   lit
-    .command("add <knowledge-base-id> <pdf-path>")
-    .description("Add a literature from a PDF file")
+    .command("add <knowledge-base-id> <lit-path>")
+    .description("Add a literature from a file (PDF, TXT, MD, TEX, etc.)")
     .option("-t, --title <title>", "Literature title")
-    .action(async (kbId: string, pdfPath: string, options: { title?: string }) => {
+    .action(async (kbId: string, litPath: string, options: { title?: string }) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
         log.error(`Knowledge base not found: ${kbId}`);
@@ -60,17 +60,17 @@ export function createLiteratureCommand(): Command {
       const baseDir = getBaseDir(scope);
       const litOps = getLitOps(scope);
 
-      // Resolve PDF path
-      const absolutePdfPath = path.resolve(pdfPath);
-      if (!fs.existsSync(absolutePdfPath)) {
-        log.error(`PDF file not found: ${absolutePdfPath}`);
+      // Resolve file path
+      const absolutePath = path.resolve(litPath);
+      if (!fs.existsSync(absolutePath)) {
+        log.error(`File not found: ${absolutePath}`);
         process.exit(1);
       }
 
-      const title = options.title ?? path.basename(pdfPath, path.extname(pdfPath));
+      const title = options.title ?? path.basename(litPath, path.extname(litPath));
 
-      log.info("Extracting PDF content...");
-      const docs = await extractPdfContent(absolutePdfPath);
+      log.info("Extracting content...");
+      const docs = await extractContent(absolutePath);
       log.step(`Extracted ${String(docs.length)} pages.`);
 
       // Create literature record
@@ -86,10 +86,11 @@ export function createLiteratureCommand(): Command {
         knowledgeBaseId: kbId,
       });
 
-      // Copy PDF to storage
-      const pdfDir = getPdfDir(baseDir);
-      fs.mkdirSync(pdfDir, { recursive: true });
-      fs.copyFileSync(absolutePdfPath, path.join(pdfDir, `${literature.id}.pdf`));
+      // Copy file to storage
+      const filesDir = getFilesDir(baseDir);
+      const ext = path.extname(litPath);
+      fs.mkdirSync(filesDir, { recursive: true });
+      fs.copyFileSync(absolutePath, path.join(filesDir, `${literature.id}${ext}`));
 
       // Split text and add to vector store
       log.info("Splitting text...");
@@ -154,10 +155,14 @@ export function createLiteratureCommand(): Command {
         process.exit(1);
       }
 
-      // Delete PDF
-      const pdfPath = path.join(getPdfDir(baseDir), `${id}.pdf`);
-      if (fs.existsSync(pdfPath)) {
-        fs.unlinkSync(pdfPath);
+      // Delete stored file (find by pattern <id>.*)
+      const filesDir = getFilesDir(baseDir);
+      if (fs.existsSync(filesDir)) {
+        for (const entry of fs.readdirSync(filesDir, { withFileTypes: true })) {
+          if (entry.isFile() && entry.name.startsWith(`${id}.`)) {
+            fs.unlinkSync(path.join(filesDir, entry.name));
+          }
+        }
       }
 
       // Delete literature record

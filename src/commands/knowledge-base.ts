@@ -5,8 +5,8 @@ import { Command } from "commander";
 
 import {
   getConfig,
+  getFilesDir,
   getModelConfig,
-  getPdfDir,
   getProjectDataDir,
   getUserDataDir,
   getVectorStoreDir,
@@ -128,12 +128,15 @@ export function createKnowledgeBaseCommand(): Command {
       // 1. Get all literatures in this KB
       const literatures = litOps.getLiteraturesByKnowledgeBaseId(id);
 
-      // 2. Delete PDF files
-      const pdfDir = getPdfDir(baseDir);
-      for (const lit of literatures) {
-        const pdfPath = path.join(pdfDir, `${lit.id}.pdf`);
-        if (fs.existsSync(pdfPath)) {
-          fs.unlinkSync(pdfPath);
+      // 2. Delete stored files
+      const filesDir = getFilesDir(baseDir);
+      if (fs.existsSync(filesDir)) {
+        for (const lit of literatures) {
+          for (const entry of fs.readdirSync(filesDir, { withFileTypes: true })) {
+            if (entry.isFile() && entry.name.startsWith(`${lit.id}.`)) {
+              fs.unlinkSync(path.join(filesDir, entry.name));
+            }
+          }
         }
       }
 

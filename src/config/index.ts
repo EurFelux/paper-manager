@@ -20,8 +20,8 @@ export function getProjectDataDir(): string {
   return PROJECT_DATA_DIR;
 }
 
-export function getPdfDir(base: string): string {
-  return path.join(base, "pdfs");
+export function getFilesDir(base: string): string {
+  return path.join(base, "files");
 }
 
 export function getVectorStoreDir(base: string): string {
