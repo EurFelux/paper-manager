@@ -47,25 +47,9 @@ export function initScope(options?: { user?: boolean }): InitScopeResult {
   db.close();
   items.push({ name: "papers.db", status: dbExisted ? "exists" : "created" });
 
-  // 4. files/ directory (with migration from pdfs/)
+  // 4. files/ directory
   const filesDir = getFilesDir(baseDir);
-  const legacyPdfsDir = path.join(baseDir, "pdfs");
-  const legacyExists = fs.existsSync(legacyPdfsDir);
-  const filesExists = fs.existsSync(filesDir);
-
-  if (legacyExists && !filesExists) {
-    fs.renameSync(legacyPdfsDir, filesDir);
-    items.push({ name: "pdfs/ → files/", status: "migrated" });
-  } else if (legacyExists && filesExists) {
-    for (const entry of fs.readdirSync(legacyPdfsDir, { withFileTypes: true })) {
-      const dest = path.join(filesDir, entry.name);
-      if (!fs.existsSync(dest)) {
-        fs.renameSync(path.join(legacyPdfsDir, entry.name), dest);
-      }
-    }
-    fs.rmSync(legacyPdfsDir, { recursive: true, force: true });
-    items.push({ name: "pdfs/ → files/", status: "migrated" });
-  } else if (filesExists) {
+  if (fs.existsSync(filesDir)) {
     items.push({ name: "files/", status: "exists" });
   } else {
     fs.mkdirSync(filesDir, { recursive: true });
