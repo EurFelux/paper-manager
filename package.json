@@ -22,7 +22,8 @@
     "build": "tsc",
     "generate:schema": "tsx scripts/generate-schema.ts && oxfmt config.schema.json",
     "release": "tsx scripts/release.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --type-aware --fix",
@@ -54,7 +55,8 @@
     "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.15.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=24"
