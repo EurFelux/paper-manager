@@ -53,10 +53,13 @@ export function createConfigCommand(): Command {
     .action((options: { user?: boolean }) => {
       const result = options.user ? listConfig({ user: true }) : loadMergedConfig();
 
-      if (Object.keys(result).length === 0) {
+      const keys = Object.keys(result);
+      if (keys.length === 0) {
         log.info("No config set.");
       } else {
         log.plain(JSON.stringify(result, null, 2));
+        log.newline();
+        log.count(keys.length, keys.length === 1 ? "config" : "configs");
       }
     });
 

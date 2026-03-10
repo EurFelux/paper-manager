@@ -11,6 +11,7 @@ import chalk from "chalk";
  *   log.label("Title:", "My Paper")                   →   Title: My Paper                 (dim label, normal value)
  *   log.header("[project] abc123")                    → [project] abc123                  (bold)
  *   log.plain("raw text")                             → raw text                          (no color)
+ *   log.count(3, "literatures")                        → Total: 3 literatures              (dim)
  */
 export const log = {
   success(msg: string): void {
@@ -43,5 +44,9 @@ export const log = {
 
   newline(): void {
     console.log();
+  },
+
+  count(n: number, label: string): void {
+    console.log(chalk.dim(`Total: ${n} ${label}`));
   },
 };

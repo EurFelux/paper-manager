@@ -252,6 +252,7 @@ export function createLiteratureCommand(): Command {
         log.label("Created:", l.createdAt.toISOString());
         log.newline();
       }
+      log.count(literatures.length, literatures.length === 1 ? "literature" : "literatures");
     });
 
   // ─── lit show ──────────────────────────────────────────────
@@ -300,6 +301,8 @@ export function createLiteratureCommand(): Command {
       for (const [key, value] of entries) {
         log.label(`${key}:`, value);
       }
+      log.newline();
+      log.count(entries.length, entries.length === 1 ? "note" : "notes");
     });
 
   note

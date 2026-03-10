@@ -109,6 +109,7 @@ export function createKnowledgeBaseCommand(): Command {
         log.label("Created:", kb.createdAt.toISOString());
         log.newline();
       }
+      log.count(results.length, results.length === 1 ? "knowledge base" : "knowledge bases");
     });
 
   kb.command("remove <id>")
