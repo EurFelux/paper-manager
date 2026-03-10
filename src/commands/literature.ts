@@ -17,8 +17,8 @@ import * as projectKb from "../db/project/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
+import { extractPdfContent } from "../extractor/index.js";
 import { log } from "../logger.js";
-import { extractPdfContent } from "../pdf/extractor.js";
 import type { KnowledgeBaseMetadata, LiteratureMetadata } from "../types/index.js";
 import { createVectorStore, loadVectorStore } from "../vector-store/index.js";
 
