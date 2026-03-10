@@ -30,5 +30,8 @@ Thumbs.db
 # Coverage
 coverage/
 
+# Local data
+.paper-manager/
+
 # Agent
 .claude
