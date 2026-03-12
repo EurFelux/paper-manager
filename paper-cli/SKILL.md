@@ -96,6 +96,9 @@ paper kb create <name> -d <description> [-e <embedding-model-id>] [--user]
 # List knowledge bases
 paper kb list [--user | --all]
 
+# Update knowledge base metadata (name and/or description)
+paper kb update <id> [-n <name>] [-d <description>]
+
 # Remove a knowledge base and ALL its data (literatures, PDFs, vectors)
 paper kb remove <id>
 

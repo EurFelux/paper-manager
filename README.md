@@ -56,6 +56,7 @@ paper config list [--user]               # List all config
 ```bash
 paper kb create <name> -d <desc> [-e <model-id>] [--user]  # Create a knowledge base
 paper kb list [--all | --user]        # List knowledge bases
+paper kb update <id> [-n <name>] [-d <desc>]  # Update knowledge base metadata
 paper kb remove <id>                  # Remove a knowledge base
 paper kb query <id> <query-text>      # Query a knowledge base
 ```
