@@ -2,7 +2,7 @@ import * as crypto from "node:crypto";
 
 import type BetterSqlite3 from "better-sqlite3";
 
-import type { KnowledgeBaseMetadata } from "../../types/index.js";
+import type { KnowledgeBaseMetadata, UpdateKnowledgeBaseInput } from "../../types/index.js";
 import { dbRowToKnowledgeBase } from "../index.js";
 
 export function createKnowledgeBase(
@@ -33,6 +33,38 @@ export function getKnowledgeBase(
 export function listKnowledgeBases(db: BetterSqlite3.Database): KnowledgeBaseMetadata[] {
   const rows = db.prepare("SELECT * FROM knowledge_bases ORDER BY created_at DESC").all();
   return rows.map(dbRowToKnowledgeBase);
+}
+
+export function updateKnowledgeBase(
+  db: BetterSqlite3.Database,
+  id: string,
+  input: UpdateKnowledgeBaseInput,
+): KnowledgeBaseMetadata | null {
+  const existing = getKnowledgeBase(db, id);
+  if (!existing) return null;
+
+  const now = Date.now();
+  const fields: string[] = [];
+  const values: unknown[] = [];
+
+  if (input.name !== undefined) {
+    fields.push("name = ?");
+    values.push(input.name);
+  }
+  if (input.description !== undefined) {
+    fields.push("description = ?");
+    values.push(input.description);
+  }
+
+  if (fields.length === 0) return existing;
+
+  fields.push("updated_at = ?");
+  values.push(now);
+  values.push(id);
+
+  db.prepare(`UPDATE knowledge_bases SET ${fields.join(", ")} WHERE id = ?`).run(...values);
+
+  return getKnowledgeBase(db, id);
 }
 
 export function deleteKnowledgeBase(db: BetterSqlite3.Database, id: string): boolean {

@@ -112,6 +112,41 @@ export function createKnowledgeBaseCommand(): Command {
       log.count(results.length, results.length === 1 ? "knowledge base" : "knowledge bases");
     });
 
+  kb.command("update <id>")
+    .description("Update knowledge base metadata")
+    .option("-n, --name <name>", "New name")
+    .option("-d, --description <desc>", "New description")
+    .action((id: string, options: { name?: string; description?: string }) => {
+      if (options.name === undefined && options.description === undefined) {
+        log.error("At least one of --name or --description must be provided.");
+        process.exit(1);
+      }
+
+      const resolved = resolveKnowledgeBase(id);
+      if (!resolved) {
+        log.error(`Knowledge base not found: ${id}`);
+        process.exit(1);
+      }
+
+      const { scope } = resolved;
+      const kbOps = scope === "project" ? projectKb : userKb;
+
+      const input: { name?: string; description?: string } = {};
+      if (options.name !== undefined) input.name = options.name;
+      if (options.description !== undefined) input.description = options.description;
+
+      const updated = kbOps.updateKnowledgeBase(id, input);
+      if (!updated) {
+        log.error("Failed to update knowledge base.");
+        process.exit(1);
+      }
+
+      log.success(`Knowledge base updated: ${updated.id}`);
+      log.label("Name:", updated.name);
+      log.label("Description:", updated.description);
+      log.label("Scope:", scope);
+    });
+
   kb.command("remove <id>")
     .description("Remove a knowledge base and all its data")
     .action((id: string) => {

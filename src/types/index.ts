@@ -28,6 +28,13 @@ export const KnowledgeBaseMetadataSchema = z.object({
 
 export type KnowledgeBaseMetadata = z.infer<typeof KnowledgeBaseMetadataSchema>;
 
+export const UpdateKnowledgeBaseSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+});
+
+export type UpdateKnowledgeBaseInput = z.infer<typeof UpdateKnowledgeBaseSchema>;
+
 // ─── Literature ─────────────────────────────────────────────
 
 export const LiteratureMetadataSchema = z.object({

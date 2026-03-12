@@ -1,4 +1,4 @@
-import type { KnowledgeBaseMetadata } from "../../types/index.js";
+import type { KnowledgeBaseMetadata, UpdateKnowledgeBaseInput } from "../../types/index.js";
 import { getProjectDb } from "../index.js";
 import * as ops from "../operations/knowledge-bases.js";
 
@@ -16,6 +16,13 @@ export function getKnowledgeBase(id: string): KnowledgeBaseMetadata | null {
 
 export function listKnowledgeBases(): KnowledgeBaseMetadata[] {
   return ops.listKnowledgeBases(getProjectDb());
+}
+
+export function updateKnowledgeBase(
+  id: string,
+  input: UpdateKnowledgeBaseInput,
+): KnowledgeBaseMetadata | null {
+  return ops.updateKnowledgeBase(getProjectDb(), id, input);
 }
 
 export function deleteKnowledgeBase(id: string): boolean {
