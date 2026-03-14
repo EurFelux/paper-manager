@@ -179,3 +179,7 @@ paper util doi2bib <doi>
 - The `kb remove` command is destructive: it deletes the knowledge base, all its literatures, source files, and vector stores
 - The `--user` flag on `config`/`kb create` controls scope; omitting it uses project scope
 - Config values passed to `config set` are parsed as JSON first; if JSON parsing fails, the raw string is stored
+
+## Skill Maintenance
+
+Skill version: v0.6.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
