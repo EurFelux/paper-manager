@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-03-15
+
+### Added
+
+- `util pdf-meta` command for extracting metadata from PDF files
+
 ## [0.6.0] - 2026-03-15
 
 ### Added
@@ -11,7 +17,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - `doi` field for literature metadata
 - `util doi2bib` command for converting DOI to BibTeX citation
 - Auto-extract metadata (title, author, subject, keywords, DOI, dates) from PDF when adding literature
-- `util pdf-meta` command for extracting metadata from PDF files
 
 ### Changed
 
@@ -129,6 +134,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - SQLite metadata storage
 - Import sorting and type import lint rules
 
+[0.7.0]: https://github.com/EurFelux/paper-manager/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/EurFelux/paper-manager/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/EurFelux/paper-manager/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/EurFelux/paper-manager/compare/0.4.1...v0.4.2

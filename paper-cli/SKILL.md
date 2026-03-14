@@ -185,4 +185,4 @@ paper util pdf-meta <file> [--json]
 
 ## Skill Maintenance
 
-Skill version: v0.6.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
+Skill version: v0.7.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
