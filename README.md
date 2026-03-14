@@ -74,6 +74,12 @@ paper lit note set <lit-id> <k> <v>   # Set a note
 paper lit note remove <lit-id> <key>  # Remove a note
 ```
 
+### Utilities (`paper util`)
+
+```bash
+paper util doi2bib <doi>             # Convert a DOI to BibTeX citation
+```
+
 ## Configuration
 
 See [Configuration Reference](docs/configuration.md) for all available config fields and detailed usage.

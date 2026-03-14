@@ -49,9 +49,9 @@ Storage: SQLite + FAISS + JSON + filesystem
 
 ### Key Design Patterns
 
-- **Schema-first types**: `src/types/index.ts` defines Zod schemas as the single source of truth. TypeScript types are inferred from Zod (`z.infer<>`). Always add/modify types here first.
-- **DB scope layering**: `db/operations/` has generic CRUD functions that accept a `db` instance parameter. `db/user/` and `db/project/` re-export these bound to their respective singleton connections. When adding DB operations, write the generic version in `operations/` and create scope wrappers.
-- **Singleton DB connections**: `db/index.ts` lazily initializes and caches user/project SQLite connections.
+- **Drizzle ORM**: `src/db/schema.ts` defines tables with `sqliteTable()`. Select types (`LiteratureMetadata`, `KnowledgeBaseMetadata`) are inferred from Drizzle (`$inferSelect`). Input validation uses Zod schemas in `src/types/index.ts`. When adding columns, update both the Drizzle schema and the bootstrap SQL strings in `schema.ts`, plus add a migration in `db/index.ts`.
+- **DB scope layering**: `db/operations/` has generic CRUD functions that accept an `AppDatabase` (Drizzle-wrapped) parameter. `db/user/` and `db/project/` re-export these bound to their respective singleton connections. When adding DB operations, write the generic version in `operations/` and create scope wrappers.
+- **Singleton DB connections**: `db/index.ts` lazily initializes and caches user/project Drizzle-wrapped connections. Migrations run automatically via `user_version` pragma.
 - **Adapter pattern**: `vector-store/embeddings.ts` (`AiSdkEmbeddings`) bridges Vercel AI SDK to LangChain's `Embeddings` interface. FAISS operations go through LangChain's `FaissStore`.
 - **Factory pattern**: `ai/provider.ts` creates embedding model instances from config objects.
 
@@ -65,7 +65,7 @@ Two tables (`knowledge_bases`, `literatures`) with identical schema in both user
 <scope-dir>/
 ├── config.json          # Embedding model configs + default model ID
 ├── papers.db            # SQLite database
-├── pdfs/<lit-id>.pdf    # Stored PDFs
+├── files/<lit-id>.<ext>  # Stored source files
 └── vector-stores/<kb-id>/  # FAISS index per knowledge base
 ```
 

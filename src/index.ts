@@ -7,6 +7,7 @@ import { Command } from "commander";
 import { createConfigCommand } from "./commands/config.js";
 import { createKnowledgeBaseCommand } from "./commands/knowledge-base.js";
 import { createLiteratureCommand } from "./commands/literature.js";
+import { createUtilCommand } from "./commands/util.js";
 import { startup } from "./lifecycle.js";
 
 const require = createRequire(import.meta.url);
@@ -23,5 +24,6 @@ program.hook("preAction", () => {
 program.addCommand(createConfigCommand());
 program.addCommand(createKnowledgeBaseCommand());
 program.addCommand(createLiteratureCommand());
+program.addCommand(createUtilCommand());
 
 program.parse();

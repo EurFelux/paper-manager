@@ -130,6 +130,7 @@ paper lit update <kb-id> <lit-id> [options]
 #   --abstract <abstract>
 #   --summary <summary>
 #   --url <url>
+#   --doi <doi>
 #   --keywords <comma-separated-keywords>
 
 # Remove a paper (deletes DB record, source file; vectors remain in store)
@@ -147,6 +148,13 @@ paper lit note remove <lit-id> <key>            # Remove a note
 ```
 
 Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
+
+### paper util — Utilities
+
+```bash
+# Convert a DOI to BibTeX citation (accepts DOI identifier or full URL)
+paper util doi2bib <doi>
+```
 
 ## Common Workflows
 

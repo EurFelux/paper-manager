@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `doi` field for literature metadata
+- `util doi2bib` command for converting DOI to BibTeX citation
+
+### Changed
+
+- Refactor DB layer from raw SQL to Drizzle ORM for type-safe queries
+
 ## [0.5.0] - 2026-03-12
 
 ### Added
