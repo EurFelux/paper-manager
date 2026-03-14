@@ -174,6 +174,10 @@ paper util pdf-meta <file> [--json]
 2. `paper lit update <kb-id> <lit-id> -a "Author Name" --keywords "ML,NLP"`
 3. `paper lit note set <lit-id> takeaway "Key insight from this paper"`
 
+### Find the stored file for a literature
+
+Source files are stored at `<scope-dir>/files/<lit-id>.<ext>` (e.g., `.paper-manager/files/f47ac10b-58cc-4372-a567-0e02b2c3d479.pdf`). To locate a literature's file, use `paper lit list <kb-id>` to get the literature ID, then look in the `files/` directory under the appropriate scope directory (`.paper-manager/` for project scope, `~/.paper-manager/` for user scope).
+
 ## Important Notes
 
 - All IDs (knowledge base, literature) are UUIDs — always use `list` commands to look them up
