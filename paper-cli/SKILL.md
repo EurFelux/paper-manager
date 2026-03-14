@@ -155,6 +155,9 @@ Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
 ```bash
 # Convert a DOI to BibTeX citation (accepts DOI identifier or full URL)
 paper util doi2bib <doi>
+
+# Extract metadata from a PDF file (title, author, subject, keywords, DOI, dates)
+paper util pdf-meta <file> [--json]
 ```
 
 ## Common Workflows

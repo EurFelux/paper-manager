@@ -78,6 +78,7 @@ paper lit note remove <lit-id> <key>  # Remove a note
 
 ```bash
 paper util doi2bib <doi>             # Convert a DOI to BibTeX citation
+paper util pdf-meta <file> [--json]  # Extract metadata from a PDF file
 ```
 
 ## Configuration
