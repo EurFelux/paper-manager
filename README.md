@@ -64,7 +64,7 @@ paper kb query <id> <query-text>      # Query a knowledge base
 ### Literature (`paper lit`)
 
 ```bash
-paper lit add <kb-id> <file-path>     # Add a literature (PDF, TXT, MD, TEX, etc.)
+paper lit add <kb-id> <file-path>     # Add a literature (auto-extracts PDF metadata)
 paper lit remove <kb-id> <id>         # Remove a literature
 paper lit update <kb-id> <id> [opts]  # Update literature metadata
 paper lit list <kb-id>                # List literatures

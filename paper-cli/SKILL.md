@@ -113,8 +113,9 @@ The `<id>` for knowledge bases is a UUID assigned at creation time. Use `paper k
 ```bash
 # Add a paper (extracts content, splits text, creates embeddings)
 # Supports PDF, TXT, MD, TEX, and other text-based formats
+# For PDFs, automatically extracts metadata (title, author, keywords, DOI, etc.)
 paper lit add <kb-id> <file-path> [-t <title>]
-# Title defaults to the filename (without extension) if not specified
+# Title defaults to PDF metadata title, then filename if not specified
 
 # List papers in a knowledge base
 paper lit list <kb-id>

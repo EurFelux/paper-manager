@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - `doi` field for literature metadata
 - `util doi2bib` command for converting DOI to BibTeX citation
+- Auto-extract metadata (title, author, subject, keywords, DOI, dates) from PDF when adding literature
 
 ### Changed
 
