@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.6.0] - 2026-03-15
 
 ### Added
 
@@ -128,6 +128,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - SQLite metadata storage
 - Import sorting and type import lint rules
 
+[0.6.0]: https://github.com/EurFelux/paper-manager/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/EurFelux/paper-manager/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/EurFelux/paper-manager/compare/0.4.1...v0.4.2
 [0.4.1]: https://github.com/EurFelux/paper-manager/compare/v0.4.0...0.4.1
