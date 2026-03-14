@@ -1,73 +1,68 @@
 import * as crypto from "node:crypto";
 
-import type BetterSqlite3 from "better-sqlite3";
+import { desc, eq } from "drizzle-orm";
 
 import type { KnowledgeBaseMetadata, UpdateKnowledgeBaseInput } from "../../types/index.js";
-import { dbRowToKnowledgeBase } from "../index.js";
+import type { AppDatabase } from "../index.js";
+import { knowledgeBases } from "../schema.js";
 
 export function createKnowledgeBase(
-  db: BetterSqlite3.Database,
+  db: AppDatabase,
   input: { name: string; description: string; embeddingModelId: string },
 ): KnowledgeBaseMetadata {
   const id = crypto.randomUUID();
-  const now = Date.now();
+  const now = new Date();
 
-  db.prepare(
-    `INSERT INTO knowledge_bases (id, name, description, embedding_model_id, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  ).run(id, input.name, input.description, input.embeddingModelId, now, now);
+  const row = db
+    .insert(knowledgeBases)
+    .values({
+      id,
+      name: input.name,
+      description: input.description,
+      embeddingModelId: input.embeddingModelId,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning()
+    .get();
 
-  const row = db.prepare("SELECT * FROM knowledge_bases WHERE id = ?").get(id);
-  return dbRowToKnowledgeBase(row);
+  if (!row) throw new Error("Failed to insert knowledge base");
+  return row;
 }
 
-export function getKnowledgeBase(
-  db: BetterSqlite3.Database,
-  id: string,
-): KnowledgeBaseMetadata | null {
-  const row = db.prepare("SELECT * FROM knowledge_bases WHERE id = ?").get(id);
-  if (!row) return null;
-  return dbRowToKnowledgeBase(row);
+export function getKnowledgeBase(db: AppDatabase, id: string): KnowledgeBaseMetadata | null {
+  const row = db.select().from(knowledgeBases).where(eq(knowledgeBases.id, id)).get();
+  return row ?? null;
 }
 
-export function listKnowledgeBases(db: BetterSqlite3.Database): KnowledgeBaseMetadata[] {
-  const rows = db.prepare("SELECT * FROM knowledge_bases ORDER BY created_at DESC").all();
-  return rows.map(dbRowToKnowledgeBase);
+export function listKnowledgeBases(db: AppDatabase): KnowledgeBaseMetadata[] {
+  return db.select().from(knowledgeBases).orderBy(desc(knowledgeBases.createdAt)).all();
 }
 
 export function updateKnowledgeBase(
-  db: BetterSqlite3.Database,
+  db: AppDatabase,
   id: string,
   input: UpdateKnowledgeBaseInput,
 ): KnowledgeBaseMetadata | null {
-  const existing = getKnowledgeBase(db, id);
-  if (!existing) return null;
+  const updates: Partial<typeof knowledgeBases.$inferInsert> = {};
 
-  const now = Date.now();
-  const fields: string[] = [];
-  const values: unknown[] = [];
+  if (input.name !== undefined) updates.name = input.name;
+  if (input.description !== undefined) updates.description = input.description;
 
-  if (input.name !== undefined) {
-    fields.push("name = ?");
-    values.push(input.name);
-  }
-  if (input.description !== undefined) {
-    fields.push("description = ?");
-    values.push(input.description);
-  }
+  if (Object.keys(updates).length === 0) return getKnowledgeBase(db, id);
 
-  if (fields.length === 0) return existing;
+  updates.updatedAt = new Date();
 
-  fields.push("updated_at = ?");
-  values.push(now);
-  values.push(id);
-
-  db.prepare(`UPDATE knowledge_bases SET ${fields.join(", ")} WHERE id = ?`).run(...values);
-
-  return getKnowledgeBase(db, id);
+  const row = db
+    .update(knowledgeBases)
+    .set(updates)
+    .where(eq(knowledgeBases.id, id))
+    .returning()
+    .get();
+  return row ?? null;
 }
 
-export function deleteKnowledgeBase(db: BetterSqlite3.Database, id: string): boolean {
-  const result = db.prepare("DELETE FROM knowledge_bases WHERE id = ?").run(id);
+export function deleteKnowledgeBase(db: AppDatabase, id: string): boolean {
+  const result = db.delete(knowledgeBases).where(eq(knowledgeBases.id, id)).run();
   return result.changes > 0;
 }

@@ -4,15 +4,12 @@ import {
   ConfigSchema,
   CreateLiteratureSchema,
   EmbeddingModelConfigSchema,
-  KnowledgeBaseMetadataSchema,
-  LiteratureMetadataSchema,
   UpdateLiteratureSchema,
 } from "./index.js";
 
 // ─── Helpers ─────────────────────────────────────────────────
 
 const validUuid = "550e8400-e29b-41d4-a716-446655440000";
-const now = new Date();
 
 // ─── EmbeddingModelConfigSchema ──────────────────────────────
 
@@ -51,101 +48,36 @@ describe("EmbeddingModelConfigSchema", () => {
   });
 });
 
-// ─── KnowledgeBaseMetadataSchema ─────────────────────────────
+// ─── CreateLiteratureSchema ──────────────────────────────────
 
-describe("KnowledgeBaseMetadataSchema", () => {
-  const valid = {
-    id: validUuid,
-    name: "My KB",
-    description: "A test knowledge base",
-    embeddingModelId: "model-1",
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  it("accepts a valid knowledge base", () => {
-    expect(KnowledgeBaseMetadataSchema.parse(valid)).toMatchObject(valid);
-  });
-
-  it("rejects non-uuid id", () => {
-    expect(() => KnowledgeBaseMetadataSchema.parse({ ...valid, id: "not-a-uuid" })).toThrow();
-  });
-
-  it("rejects empty name", () => {
-    expect(() => KnowledgeBaseMetadataSchema.parse({ ...valid, name: "" })).toThrow();
-  });
-
-  it("rejects empty embeddingModelId", () => {
-    expect(() => KnowledgeBaseMetadataSchema.parse({ ...valid, embeddingModelId: "" })).toThrow();
-  });
-});
-
-// ─── LiteratureMetadataSchema ────────────────────────────────
-
-describe("LiteratureMetadataSchema", () => {
-  const valid = {
-    id: validUuid,
-    title: "A Paper",
+describe("CreateLiteratureSchema", () => {
+  const base = {
+    title: "Paper",
     titleTranslation: null,
     author: null,
     abstract: null,
     summary: null,
-    keywords: [],
-    url: null,
-    notes: {},
     knowledgeBaseId: validUuid,
-    createdAt: now,
-    updatedAt: now,
+    url: null,
+    doi: null,
   };
 
-  it("accepts a minimal valid literature", () => {
-    expect(LiteratureMetadataSchema.parse(valid)).toMatchObject(valid);
+  it("does not require id, createdAt, updatedAt", () => {
+    expect(() => CreateLiteratureSchema.parse(base)).not.toThrow();
   });
 
   it("fills defaults for keywords and notes", () => {
-    const { keywords: _, notes: __, ...without } = valid;
-    const result = LiteratureMetadataSchema.parse(without);
+    const result = CreateLiteratureSchema.parse(base);
     expect(result.keywords).toEqual([]);
     expect(result.notes).toEqual({});
   });
 
-  it("accepts populated optional fields", () => {
-    const full = {
-      ...valid,
-      titleTranslation: "一篇论文",
-      author: "Alice",
-      abstract: "This paper...",
-      summary: "Summary here",
-      keywords: ["ai", "ml"],
-      url: "https://arxiv.org/abs/1234.5678",
-      notes: { key: "value" },
-    };
-    expect(LiteratureMetadataSchema.parse(full)).toMatchObject(full);
-  });
-
   it("rejects empty title", () => {
-    expect(() => LiteratureMetadataSchema.parse({ ...valid, title: "" })).toThrow();
+    expect(() => CreateLiteratureSchema.parse({ ...base, title: "" })).toThrow();
   });
 
   it("rejects invalid url", () => {
-    expect(() => LiteratureMetadataSchema.parse({ ...valid, url: "not-a-url" })).toThrow();
-  });
-});
-
-// ─── CreateLiteratureSchema ──────────────────────────────────
-
-describe("CreateLiteratureSchema", () => {
-  it("does not require id, createdAt, updatedAt", () => {
-    const input = {
-      title: "New Paper",
-      titleTranslation: null,
-      author: null,
-      abstract: null,
-      summary: null,
-      knowledgeBaseId: validUuid,
-      url: null,
-    };
-    expect(() => CreateLiteratureSchema.parse(input)).not.toThrow();
+    expect(() => CreateLiteratureSchema.parse({ ...base, url: "not-a-url" })).toThrow();
   });
 });
 

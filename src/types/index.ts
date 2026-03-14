@@ -1,5 +1,9 @@
 import * as z from "zod";
 
+// ─── Re-export Drizzle-inferred types ───────────────────────
+
+export type { KnowledgeBaseMetadata, LiteratureMetadata } from "../db/schema.js";
+
 // ─── Embedding Model Config ─────────────────────────────────
 
 export const EmbeddingModelConfigSchema = z.object({
@@ -15,18 +19,7 @@ export type EmbeddingModelConfig = z.infer<typeof EmbeddingModelConfigSchema> & 
   id: string;
 };
 
-// ─── Knowledge Base ─────────────────────────────────────────
-
-export const KnowledgeBaseMetadataSchema = z.object({
-  id: z.uuid(),
-  name: z.string().min(1),
-  description: z.string(),
-  embeddingModelId: z.string().min(1),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export type KnowledgeBaseMetadata = z.infer<typeof KnowledgeBaseMetadataSchema>;
+// ─── Knowledge Base Input ───────────────────────────────────
 
 export const UpdateKnowledgeBaseSchema = z.object({
   name: z.string().min(1).optional(),
@@ -35,10 +28,9 @@ export const UpdateKnowledgeBaseSchema = z.object({
 
 export type UpdateKnowledgeBaseInput = z.infer<typeof UpdateKnowledgeBaseSchema>;
 
-// ─── Literature ─────────────────────────────────────────────
+// ─── Literature Input ───────────────────────────────────────
 
-export const LiteratureMetadataSchema = z.object({
-  id: z.uuid(),
+export const CreateLiteratureSchema = z.object({
   title: z.string().min(1),
   titleTranslation: z.string().nullable(),
   author: z.string().nullable(),
@@ -46,18 +38,9 @@ export const LiteratureMetadataSchema = z.object({
   summary: z.string().nullable(),
   keywords: z.array(z.string()).default([]),
   url: z.url().nullable(),
+  doi: z.string().nullable(),
   notes: z.record(z.string(), z.string()).default({}),
   knowledgeBaseId: z.uuid(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export type LiteratureMetadata = z.infer<typeof LiteratureMetadataSchema>;
-
-export const CreateLiteratureSchema = LiteratureMetadataSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
 });
 
 export type CreateLiteratureInput = z.infer<typeof CreateLiteratureSchema>;

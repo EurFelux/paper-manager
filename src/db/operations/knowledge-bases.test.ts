@@ -1,6 +1,7 @@
-import type BetterSqlite3 from "better-sqlite3";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { sql } from "drizzle-orm";
+import { beforeEach, describe, expect, it } from "vitest";
 
+import type { AppDatabase } from "../index.js";
 import { createTestDb } from "../test-utils.js";
 import {
   createKnowledgeBase,
@@ -9,14 +10,10 @@ import {
   listKnowledgeBases,
 } from "./knowledge-bases.js";
 
-let db: BetterSqlite3.Database;
+let db: AppDatabase;
 
 beforeEach(() => {
   db = createTestDb();
-});
-
-afterEach(() => {
-  db.close();
 });
 
 const input = {
@@ -70,9 +67,7 @@ describe("listKnowledgeBases", () => {
   it("returns knowledge bases ordered by created_at DESC", () => {
     const kb1 = createKnowledgeBase(db, { ...input, name: "First" });
     // Manually backdate kb1 so ordering is deterministic
-    db.prepare("UPDATE knowledge_bases SET created_at = created_at - 1000 WHERE id = ?").run(
-      kb1.id,
-    );
+    db.run(sql`UPDATE knowledge_bases SET created_at = created_at - 1000 WHERE id = ${kb1.id}`);
     const kb2 = createKnowledgeBase(db, { ...input, name: "Second" });
 
     const list = listKnowledgeBases(db);

@@ -1,136 +1,104 @@
 import * as crypto from "node:crypto";
 
-import type BetterSqlite3 from "better-sqlite3";
+import { desc, eq } from "drizzle-orm";
 
 import type {
   CreateLiteratureInput,
   LiteratureMetadata,
   UpdateLiteratureInput,
 } from "../../types/index.js";
-import { dbRowToLiterature } from "../index.js";
+import type { AppDatabase } from "../index.js";
+import { literatures } from "../schema.js";
 
 export function createLiterature(
-  db: BetterSqlite3.Database,
+  db: AppDatabase,
   input: CreateLiteratureInput,
 ): LiteratureMetadata {
   const id = crypto.randomUUID();
-  const now = Date.now();
+  const now = new Date();
 
-  db.prepare(
-    `INSERT INTO literatures (id, title, title_translation, author, abstract, summary, keywords, url, notes, knowledge_base_id, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(
-    id,
-    input.title,
-    input.titleTranslation ?? null,
-    input.author ?? null,
-    input.abstract ?? null,
-    input.summary ?? null,
-    JSON.stringify(input.keywords),
-    input.url ?? null,
-    JSON.stringify(input.notes),
-    input.knowledgeBaseId,
-    now,
-    now,
-  );
+  const row = db
+    .insert(literatures)
+    .values({
+      id,
+      title: input.title,
+      titleTranslation: input.titleTranslation,
+      author: input.author,
+      abstract: input.abstract,
+      summary: input.summary,
+      keywords: input.keywords,
+      url: input.url,
+      doi: input.doi,
+      notes: input.notes,
+      knowledgeBaseId: input.knowledgeBaseId,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning()
+    .get();
 
-  const row = db.prepare("SELECT * FROM literatures WHERE id = ?").get(id);
-  return dbRowToLiterature(row);
+  if (!row) throw new Error("Failed to insert literature");
+  return row;
 }
 
-export function getLiterature(db: BetterSqlite3.Database, id: string): LiteratureMetadata | null {
-  const row = db.prepare("SELECT * FROM literatures WHERE id = ?").get(id);
-  if (!row) return null;
-  return dbRowToLiterature(row);
+export function getLiterature(db: AppDatabase, id: string): LiteratureMetadata | null {
+  const row = db.select().from(literatures).where(eq(literatures.id, id)).get();
+  return row ?? null;
 }
 
-export function listLiteratures(
-  db: BetterSqlite3.Database,
-  knowledgeBaseId: string,
-): LiteratureMetadata[] {
-  const rows = db
-    .prepare("SELECT * FROM literatures WHERE knowledge_base_id = ? ORDER BY created_at DESC")
-    .all(knowledgeBaseId);
-  return rows.map(dbRowToLiterature);
+export function listLiteratures(db: AppDatabase, knowledgeBaseId: string): LiteratureMetadata[] {
+  return db
+    .select()
+    .from(literatures)
+    .where(eq(literatures.knowledgeBaseId, knowledgeBaseId))
+    .orderBy(desc(literatures.createdAt))
+    .all();
 }
 
 export function updateLiterature(
-  db: BetterSqlite3.Database,
+  db: AppDatabase,
   id: string,
   input: UpdateLiteratureInput,
 ): LiteratureMetadata | null {
-  const existing = getLiterature(db, id);
-  if (!existing) return null;
+  const updates: Partial<typeof literatures.$inferInsert> = {};
 
-  const now = Date.now();
-  const fields: string[] = [];
-  const values: unknown[] = [];
+  if (input.title !== undefined) updates.title = input.title;
+  if (input.titleTranslation !== undefined) updates.titleTranslation = input.titleTranslation;
+  if (input.author !== undefined) updates.author = input.author;
+  if (input.abstract !== undefined) updates.abstract = input.abstract;
+  if (input.summary !== undefined) updates.summary = input.summary;
+  if (input.keywords !== undefined) updates.keywords = input.keywords;
+  if (input.url !== undefined) updates.url = input.url;
+  if (input.doi !== undefined) updates.doi = input.doi;
+  if (input.notes !== undefined) updates.notes = input.notes;
+  if (input.knowledgeBaseId !== undefined) updates.knowledgeBaseId = input.knowledgeBaseId;
 
-  if (input.title !== undefined) {
-    fields.push("title = ?");
-    values.push(input.title);
-  }
-  if (input.titleTranslation !== undefined) {
-    fields.push("title_translation = ?");
-    values.push(input.titleTranslation);
-  }
-  if (input.author !== undefined) {
-    fields.push("author = ?");
-    values.push(input.author);
-  }
-  if (input.abstract !== undefined) {
-    fields.push("abstract = ?");
-    values.push(input.abstract);
-  }
-  if (input.summary !== undefined) {
-    fields.push("summary = ?");
-    values.push(input.summary);
-  }
-  if (input.keywords !== undefined) {
-    fields.push("keywords = ?");
-    values.push(JSON.stringify(input.keywords));
-  }
-  if (input.url !== undefined) {
-    fields.push("url = ?");
-    values.push(input.url);
-  }
-  if (input.notes !== undefined) {
-    fields.push("notes = ?");
-    values.push(JSON.stringify(input.notes));
-  }
-  if (input.knowledgeBaseId !== undefined) {
-    fields.push("knowledge_base_id = ?");
-    values.push(input.knowledgeBaseId);
-  }
+  if (Object.keys(updates).length === 0) return getLiterature(db, id);
 
-  if (fields.length === 0) return existing;
+  updates.updatedAt = new Date();
 
-  fields.push("updated_at = ?");
-  values.push(now);
-  values.push(id);
-
-  db.prepare(`UPDATE literatures SET ${fields.join(", ")} WHERE id = ?`).run(...values);
-
-  return getLiterature(db, id);
+  const row = db.update(literatures).set(updates).where(eq(literatures.id, id)).returning().get();
+  return row ?? null;
 }
 
-export function deleteLiterature(db: BetterSqlite3.Database, id: string): boolean {
-  const result = db.prepare("DELETE FROM literatures WHERE id = ?").run(id);
+export function deleteLiterature(db: AppDatabase, id: string): boolean {
+  const result = db.delete(literatures).where(eq(literatures.id, id)).run();
   return result.changes > 0;
 }
 
 export function deleteLiteraturesByKnowledgeBaseId(
-  db: BetterSqlite3.Database,
+  db: AppDatabase,
   knowledgeBaseId: string,
 ): number {
   const result = db
-    .prepare("DELETE FROM literatures WHERE knowledge_base_id = ?")
-    .run(knowledgeBaseId);
+    .delete(literatures)
+    .where(eq(literatures.knowledgeBaseId, knowledgeBaseId))
+    .run();
   return result.changes;
 }
 
 export function getLiteraturesByKnowledgeBaseId(
-  db: BetterSqlite3.Database,
+  db: AppDatabase,
   knowledgeBaseId: string,
 ): LiteratureMetadata[] {
   return listLiteratures(db, knowledgeBaseId);

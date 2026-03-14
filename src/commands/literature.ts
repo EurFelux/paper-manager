@@ -19,7 +19,11 @@ import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
 import { extractContent } from "../extractor/index.js";
 import { log } from "../logger.js";
-import type { KnowledgeBaseMetadata, LiteratureMetadata } from "../types/index.js";
+import type {
+  KnowledgeBaseMetadata,
+  LiteratureMetadata,
+  UpdateLiteratureInput,
+} from "../types/index.js";
 import { createVectorStore, loadVectorStore } from "../vector-store/index.js";
 
 function resolveKnowledgeBase(
@@ -82,6 +86,7 @@ export function createLiteratureCommand(): Command {
         summary: null,
         keywords: [],
         url: null,
+        doi: null,
         notes: {},
         knowledgeBaseId: kbId,
       });
@@ -181,6 +186,7 @@ export function createLiteratureCommand(): Command {
     .option("--abstract <abstract>", "Abstract")
     .option("--summary <summary>", "Summary")
     .option("--url <url>", "URL")
+    .option("--doi <doi>", "DOI")
     .option("--keywords <keywords>", "Keywords (comma-separated)")
     .action(
       (
@@ -193,6 +199,7 @@ export function createLiteratureCommand(): Command {
           abstract?: string;
           summary?: string;
           url?: string;
+          doi?: string;
           keywords?: string;
         },
       ) => {
@@ -203,17 +210,20 @@ export function createLiteratureCommand(): Command {
         }
 
         const litOps = getLitOps(resolved.scope);
-        const input: Record<string, unknown> = {};
-
-        if (options.title !== undefined) input["title"] = options.title;
-        if (options.titleTranslation !== undefined)
-          input["titleTranslation"] = options.titleTranslation;
-        if (options.author !== undefined) input["author"] = options.author;
-        if (options.abstract !== undefined) input["abstract"] = options.abstract;
-        if (options.summary !== undefined) input["summary"] = options.summary;
-        if (options.url !== undefined) input["url"] = options.url;
-        if (options.keywords !== undefined)
-          input["keywords"] = options.keywords.split(",").map((k) => k.trim());
+        const input: UpdateLiteratureInput = {
+          ...(options.title !== undefined && { title: options.title }),
+          ...(options.titleTranslation !== undefined && {
+            titleTranslation: options.titleTranslation,
+          }),
+          ...(options.author !== undefined && { author: options.author }),
+          ...(options.abstract !== undefined && { abstract: options.abstract }),
+          ...(options.summary !== undefined && { summary: options.summary }),
+          ...(options.url !== undefined && { url: options.url }),
+          ...(options.doi !== undefined && { doi: options.doi }),
+          ...(options.keywords !== undefined && {
+            keywords: options.keywords.split(",").map((k) => k.trim()),
+          }),
+        };
 
         const updated = litOps.updateLiterature(id, input);
         if (!updated) {
@@ -366,7 +376,8 @@ function printLiterature(lit: LiteratureMetadata): void {
   if (lit.summary) log.label("Summary:", lit.summary);
   if (lit.keywords.length > 0) log.label("Keywords:", lit.keywords.join(", "));
   if (lit.url) log.label("URL:", lit.url);
-  log.label("Knowledge Base:", lit.knowledgeBaseId);
+  if (lit.doi) log.label("DOI:", lit.doi);
+  if (lit.knowledgeBaseId) log.label("Knowledge Base:", lit.knowledgeBaseId);
   log.label("Created:", lit.createdAt.toISOString());
   log.label("Updated:", lit.updatedAt.toISOString());
 

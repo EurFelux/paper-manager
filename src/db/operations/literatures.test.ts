@@ -1,7 +1,8 @@
-import type BetterSqlite3 from "better-sqlite3";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { sql } from "drizzle-orm";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { CreateLiteratureInput } from "../../types/index.js";
+import type { AppDatabase } from "../index.js";
 import { createTestDb } from "../test-utils.js";
 import { createKnowledgeBase } from "./knowledge-bases.js";
 import {
@@ -13,7 +14,7 @@ import {
   updateLiterature,
 } from "./literatures.js";
 
-let db: BetterSqlite3.Database;
+let db: AppDatabase;
 let kbId: string;
 
 beforeEach(() => {
@@ -27,10 +28,6 @@ beforeEach(() => {
   kbId = kb.id;
 });
 
-afterEach(() => {
-  db.close();
-});
-
 function makeInput(overrides?: Partial<CreateLiteratureInput>): CreateLiteratureInput {
   return {
     title: "A Paper",
@@ -40,6 +37,7 @@ function makeInput(overrides?: Partial<CreateLiteratureInput>): CreateLiterature
     summary: null,
     keywords: ["ai", "ml"],
     url: null,
+    doi: null,
     notes: { read: "yes" },
     knowledgeBaseId: kbId,
     ...overrides,
@@ -196,14 +194,12 @@ describe("foreign key: ON DELETE SET NULL", () => {
   it("sets knowledge_base_id to null when KB is deleted", () => {
     const lit = createLiterature(db, makeInput());
     // Delete the KB directly via SQL to trigger FK cascade
-    db.prepare("DELETE FROM knowledge_bases WHERE id = ?").run(kbId);
+    db.run(sql`DELETE FROM knowledge_bases WHERE id = ${kbId}`);
 
-    // getLiterature() will throw because Zod schema requires knowledgeBaseId to be a UUID,
-    // but FK cascade sets it to NULL. Check the raw row instead.
-    const raw = db.prepare("SELECT knowledge_base_id FROM literatures WHERE id = ?").get(lit.id) as
-      | Record<string, unknown>
-      | undefined;
+    const raw = db.get<{ knowledge_base_id: string | null }>(
+      sql`SELECT knowledge_base_id FROM literatures WHERE id = ${lit.id}`,
+    );
     expect(raw).toBeDefined();
-    expect(raw!["knowledge_base_id"]).toBeNull();
+    expect(raw!.knowledge_base_id).toBeNull();
   });
 });

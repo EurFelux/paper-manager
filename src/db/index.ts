@@ -3,53 +3,15 @@ import * as path from "node:path";
 
 import type BetterSqlite3 from "better-sqlite3";
 import Database from "better-sqlite3";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 
 import { getProjectDataDir, getUserDataDir } from "../config/index.js";
-import type { KnowledgeBaseMetadata, LiteratureMetadata } from "../types/index.js";
-import { KnowledgeBaseMetadataSchema, LiteratureMetadataSchema } from "../types/index.js";
 import { CREATE_KNOWLEDGE_BASES_TABLE, CREATE_LITERATURES_TABLE } from "./schema.js";
 
-// ─── Type Guard ─────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────
 
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-// ─── Row Converters ─────────────────────────────────────────
-
-export function dbRowToKnowledgeBase(row: unknown): KnowledgeBaseMetadata {
-  if (!isRecord(row)) {
-    throw new Error("Invalid database row: expected an object");
-  }
-  return KnowledgeBaseMetadataSchema.parse({
-    id: row["id"],
-    name: row["name"],
-    description: row["description"],
-    embeddingModelId: row["embedding_model_id"],
-    createdAt: new Date(Number(row["created_at"])),
-    updatedAt: new Date(Number(row["updated_at"])),
-  });
-}
-
-export function dbRowToLiterature(row: unknown): LiteratureMetadata {
-  if (!isRecord(row)) {
-    throw new Error("Invalid database row: expected an object");
-  }
-  return LiteratureMetadataSchema.parse({
-    id: row["id"],
-    title: row["title"],
-    titleTranslation: row["title_translation"] ?? null,
-    author: row["author"] ?? null,
-    abstract: row["abstract"] ?? null,
-    summary: row["summary"] ?? null,
-    keywords: JSON.parse(typeof row["keywords"] === "string" ? row["keywords"] : "[]"),
-    url: row["url"] ?? null,
-    notes: JSON.parse(typeof row["notes"] === "string" ? row["notes"] : "{}"),
-    knowledgeBaseId: row["knowledge_base_id"],
-    createdAt: new Date(Number(row["created_at"])),
-    updatedAt: new Date(Number(row["updated_at"])),
-  });
-}
+export type AppDatabase = BetterSQLite3Database;
 
 // ─── Database Connection ────────────────────────────────────
 
@@ -65,27 +27,54 @@ export function openDatabase(dbPath: string): BetterSqlite3.Database {
 export function initializeDatabase(db: BetterSqlite3.Database): void {
   db.exec(CREATE_KNOWLEDGE_BASES_TABLE);
   db.exec(CREATE_LITERATURES_TABLE);
+  migrateDatabase(db);
+}
+
+// ─── Migrations ─────────────────────────────────────────────
+
+const MIGRATIONS: ((db: BetterSqlite3.Database) => void)[] = [
+  // v0 → v1: add doi column to literatures
+  (db) => {
+    const columns = db.pragma("table_info(literatures)") as { name: string }[];
+    if (!columns.some((c) => c.name === "doi")) {
+      db.exec("ALTER TABLE literatures ADD COLUMN doi TEXT");
+    }
+  },
+];
+
+function migrateDatabase(db: BetterSqlite3.Database): void {
+  const currentVersion = (db.pragma("user_version", { simple: true }) as number) ?? 0;
+  if (currentVersion >= MIGRATIONS.length) return;
+
+  db.transaction(() => {
+    for (let i = currentVersion; i < MIGRATIONS.length; i++) {
+      MIGRATIONS[i]!(db);
+    }
+    db.pragma(`user_version = ${String(MIGRATIONS.length)}`);
+  })();
 }
 
 // ─── Singleton Connections ──────────────────────────────────
 
-let userDb: BetterSqlite3.Database | null = null;
-let projectDb: BetterSqlite3.Database | null = null;
+let userDb: AppDatabase | null = null;
+let projectDb: AppDatabase | null = null;
 
-export function getUserDb(): BetterSqlite3.Database {
+export function getUserDb(): AppDatabase {
   if (!userDb) {
     const dbPath = path.join(getUserDataDir(), "papers.db");
-    userDb = openDatabase(dbPath);
-    initializeDatabase(userDb);
+    const client = openDatabase(dbPath);
+    initializeDatabase(client);
+    userDb = drizzle(client);
   }
   return userDb;
 }
 
-export function getProjectDb(): BetterSqlite3.Database {
+export function getProjectDb(): AppDatabase {
   if (!projectDb) {
     const dbPath = path.join(getProjectDataDir(), "papers.db");
-    projectDb = openDatabase(dbPath);
-    initializeDatabase(projectDb);
+    const client = openDatabase(dbPath);
+    initializeDatabase(client);
+    projectDb = drizzle(client);
   }
   return projectDb;
 }
