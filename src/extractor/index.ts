@@ -1,10 +1,11 @@
 import type { Document } from "@langchain/core/documents";
 import mime from "mime-types";
 
-import { extractPdfContent } from "./pdf.js";
+import { extractPdfContent, extractPdfMetadata } from "./pdf.js";
 import { extractTextContent } from "./text.js";
 
-export { extractPdfContent, extractTextContent };
+export { extractPdfContent, extractPdfMetadata, extractTextContent };
+export type { PdfMetadata } from "./pdf.js";
 
 const TEXT_LIKE_MIME_TYPES: ReadonlySet<string> = new Set([
   "application/x-tex",

@@ -17,7 +17,7 @@ import * as projectKb from "../db/project/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
-import { extractContent } from "../extractor/index.js";
+import { extractContent, extractPdfMetadata } from "../extractor/index.js";
 import { log } from "../logger.js";
 import type {
   KnowledgeBaseMetadata,
@@ -71,22 +71,41 @@ export function createLiteratureCommand(): Command {
         process.exit(1);
       }
 
-      const title = options.title ?? path.basename(litPath, path.extname(litPath));
-
       log.info("Extracting content...");
       const docs = await extractContent(absolutePath);
       log.step(`Extracted ${String(docs.length)} pages.`);
+
+      // Extract PDF metadata if available
+      const isPdf = absolutePath.toLowerCase().endsWith(".pdf");
+      const pdfMeta = isPdf ? await extractPdfMetadata(absolutePath) : null;
+
+      if (pdfMeta) {
+        const hasAny = pdfMeta.title ?? pdfMeta.author ?? pdfMeta.doi ?? pdfMeta.subject;
+        if (hasAny || pdfMeta.keywords.length > 0) {
+          log.info("Extracted PDF metadata:");
+          if (pdfMeta.title) log.step(`Title: ${pdfMeta.title}`);
+          if (pdfMeta.author) log.step(`Author: ${pdfMeta.author}`);
+          if (pdfMeta.subject) log.step(`Subject: ${pdfMeta.subject}`);
+          if (pdfMeta.doi) log.step(`DOI: ${pdfMeta.doi}`);
+          if (pdfMeta.keywords.length > 0) log.step(`Keywords: ${pdfMeta.keywords.join(", ")}`);
+          if (pdfMeta.creationDate) log.step(`Created: ${pdfMeta.creationDate.toISOString()}`);
+          if (pdfMeta.creator) log.step(`Creator: ${pdfMeta.creator}`);
+        }
+      }
+
+      const title =
+        options.title ?? pdfMeta?.title ?? path.basename(litPath, path.extname(litPath));
 
       // Create literature record
       const literature = litOps.createLiterature({
         title,
         titleTranslation: null,
-        author: null,
-        abstract: null,
+        author: pdfMeta?.author ?? null,
+        abstract: pdfMeta?.subject ?? null,
         summary: null,
-        keywords: [],
+        keywords: pdfMeta?.keywords ?? [],
         url: null,
-        doi: null,
+        doi: pdfMeta?.doi ?? null,
         notes: {},
         knowledgeBaseId: kbId,
       });
@@ -136,6 +155,10 @@ export function createLiteratureCommand(): Command {
 
       log.success(`Literature added: ${literature.id}`);
       log.label("Title:", literature.title);
+      if (literature.author) log.label("Author:", literature.author);
+      if (literature.abstract) log.label("Abstract:", literature.abstract);
+      if (literature.doi) log.label("DOI:", literature.doi);
+      if (literature.keywords.length > 0) log.label("Keywords:", literature.keywords.join(", "));
     });
 
   // ─── lit remove ────────────────────────────────────────────
