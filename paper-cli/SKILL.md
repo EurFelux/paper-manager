@@ -193,4 +193,4 @@ Source files are stored at `<scope-dir>/files/<lit-id>.<ext>` (e.g., `.paper-man
 
 ## Skill Maintenance
 
-Skill version: v0.8.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
+Skill version: v0.8.1. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
