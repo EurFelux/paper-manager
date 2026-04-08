@@ -120,6 +120,10 @@ paper lit add <kb-id> <file-path> [-t <title>]
 # List papers in a knowledge base
 paper lit list <kb-id>
 
+# Search papers in a KB by metadata (at least one filter required)
+paper lit search <kb-id> [-t <title>] [-a <author>] [-k <keyword>] [--doi <doi>]
+# Filters use substring matching; combining filters narrows results (AND)
+
 # Show full details of a paper
 paper lit show <kb-id> <lit-id>
 

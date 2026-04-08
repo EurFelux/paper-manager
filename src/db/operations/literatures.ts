@@ -1,6 +1,7 @@
 import * as crypto from "node:crypto";
 
-import { desc, eq } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
+import { and, desc, eq, like } from "drizzle-orm";
 
 import type {
   CreateLiteratureInput,
@@ -51,6 +52,33 @@ export function listLiteratures(db: AppDatabase, knowledgeBaseId: string): Liter
     .select()
     .from(literatures)
     .where(eq(literatures.knowledgeBaseId, knowledgeBaseId))
+    .orderBy(desc(literatures.createdAt))
+    .all();
+}
+
+export interface LiteratureSearchFilters {
+  title?: string;
+  author?: string;
+  keyword?: string;
+  doi?: string;
+}
+
+export function searchLiteratures(
+  db: AppDatabase,
+  knowledgeBaseId: string,
+  filters: LiteratureSearchFilters,
+): LiteratureMetadata[] {
+  const conditions: SQL[] = [eq(literatures.knowledgeBaseId, knowledgeBaseId)];
+  if (filters.title) conditions.push(like(literatures.title, `%${filters.title}%`));
+  if (filters.author) conditions.push(like(literatures.author, `%${filters.author}%`));
+  if (filters.doi) conditions.push(like(literatures.doi, `%${filters.doi}%`));
+  // keywords stored as JSON text; LIKE over raw text matches substrings
+  if (filters.keyword) conditions.push(like(literatures.keywords, `%${filters.keyword}%`));
+
+  return db
+    .select()
+    .from(literatures)
+    .where(and(...conditions))
     .orderBy(desc(literatures.createdAt))
     .all();
 }

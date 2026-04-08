@@ -33,6 +33,13 @@ export function deleteLiteraturesByKnowledgeBaseId(knowledgeBaseId: string): num
   return ops.deleteLiteraturesByKnowledgeBaseId(getProjectDb(), knowledgeBaseId);
 }
 
+export function searchLiteratures(
+  knowledgeBaseId: string,
+  filters: ops.LiteratureSearchFilters,
+): LiteratureMetadata[] {
+  return ops.searchLiteratures(getProjectDb(), knowledgeBaseId, filters);
+}
+
 export function getLiteraturesByKnowledgeBaseId(knowledgeBaseId: string): LiteratureMetadata[] {
   return ops.getLiteraturesByKnowledgeBaseId(getProjectDb(), knowledgeBaseId);
 }

@@ -7,7 +7,11 @@ import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 
 import { getProjectDataDir, getUserDataDir } from "../config/index.js";
-import { CREATE_KNOWLEDGE_BASES_TABLE, CREATE_LITERATURES_TABLE } from "./schema.js";
+import {
+  CREATE_KNOWLEDGE_BASES_TABLE,
+  CREATE_LITERATURES_KB_INDEX,
+  CREATE_LITERATURES_TABLE,
+} from "./schema.js";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -27,6 +31,7 @@ export function openDatabase(dbPath: string): BetterSqlite3.Database {
 export function initializeDatabase(db: BetterSqlite3.Database): void {
   db.exec(CREATE_KNOWLEDGE_BASES_TABLE);
   db.exec(CREATE_LITERATURES_TABLE);
+  db.exec(CREATE_LITERATURES_KB_INDEX);
   migrateDatabase(db);
 }
 
@@ -39,6 +44,10 @@ const MIGRATIONS: ((db: BetterSqlite3.Database) => void)[] = [
     if (!columns.some((c) => c.name === "doi")) {
       db.exec("ALTER TABLE literatures ADD COLUMN doi TEXT");
     }
+  },
+  // v1 → v2: add index on literatures.knowledge_base_id for faster KB-scoped lookups
+  (db) => {
+    db.exec(CREATE_LITERATURES_KB_INDEX);
   },
 ];
 

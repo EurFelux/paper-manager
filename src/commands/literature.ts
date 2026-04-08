@@ -288,6 +288,62 @@ export function createLiteratureCommand(): Command {
       log.count(literatures.length, literatures.length === 1 ? "literature" : "literatures");
     });
 
+  // ─── lit search ────────────────────────────────────────────
+
+  lit
+    .command("search <knowledge-base-id>")
+    .description("Search literatures in a knowledge base by metadata")
+    .option("-t, --title <title>", "Title substring")
+    .option("-a, --author <author>", "Author substring")
+    .option("-k, --keyword <keyword>", "Keyword substring")
+    .option("--doi <doi>", "DOI substring")
+    .action(
+      (
+        kbId: string,
+        options: { title?: string; author?: string; keyword?: string; doi?: string },
+      ) => {
+        const resolved = resolveKnowledgeBase(kbId);
+        if (!resolved) {
+          log.error(`Knowledge base not found: ${kbId}`);
+          process.exit(1);
+        }
+
+        if (
+          options.title === undefined &&
+          options.author === undefined &&
+          options.keyword === undefined &&
+          options.doi === undefined
+        ) {
+          log.error("At least one filter (--title, --author, --keyword, --doi) is required.");
+          process.exit(1);
+        }
+
+        const litOps = getLitOps(resolved.scope);
+        const results = litOps.searchLiteratures(kbId, {
+          title: options.title,
+          author: options.author,
+          keyword: options.keyword,
+          doi: options.doi,
+        });
+
+        if (results.length === 0) {
+          log.info("No literatures found.");
+          return;
+        }
+
+        for (const l of results) {
+          log.header(l.id);
+          log.label("Title:", l.title);
+          if (l.author) log.label("Author:", l.author);
+          if (l.doi) log.label("DOI:", l.doi);
+          if (l.keywords.length > 0) log.label("Keywords:", l.keywords.join(", "));
+          log.label("Created:", l.createdAt.toISOString());
+          log.newline();
+        }
+        log.count(results.length, results.length === 1 ? "literature" : "literatures");
+      },
+    );
+
   // ─── lit show ──────────────────────────────────────────────
 
   lit

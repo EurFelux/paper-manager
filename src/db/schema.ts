@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 // ─── Drizzle Table Definitions ──────────────────────────────
 
@@ -11,23 +11,27 @@ export const knowledgeBases = sqliteTable("knowledge_bases", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-export const literatures = sqliteTable("literatures", {
-  id: text("id").primaryKey(),
-  title: text("title").notNull(),
-  titleTranslation: text("title_translation"),
-  author: text("author"),
-  abstract: text("abstract"),
-  summary: text("summary"),
-  keywords: text("keywords", { mode: "json" }).$type<string[]>().notNull(),
-  url: text("url"),
-  doi: text("doi"),
-  notes: text("notes", { mode: "json" }).$type<Record<string, string>>().notNull(),
-  knowledgeBaseId: text("knowledge_base_id").references(() => knowledgeBases.id, {
-    onDelete: "set null",
-  }),
-  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-});
+export const literatures = sqliteTable(
+  "literatures",
+  {
+    id: text("id").primaryKey(),
+    title: text("title").notNull(),
+    titleTranslation: text("title_translation"),
+    author: text("author"),
+    abstract: text("abstract"),
+    summary: text("summary"),
+    keywords: text("keywords", { mode: "json" }).$type<string[]>().notNull(),
+    url: text("url"),
+    doi: text("doi"),
+    notes: text("notes", { mode: "json" }).$type<Record<string, string>>().notNull(),
+    knowledgeBaseId: text("knowledge_base_id").references(() => knowledgeBases.id, {
+      onDelete: "set null",
+    }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (t) => [index("idx_literatures_knowledge_base_id").on(t.knowledgeBaseId)],
+);
 
 // ─── Inferred Types ─────────────────────────────────────────
 
@@ -63,3 +67,7 @@ CREATE TABLE IF NOT EXISTS literatures (
     updated_at INTEGER NOT NULL,
     FOREIGN KEY (knowledge_base_id) REFERENCES knowledge_bases(id) ON DELETE SET NULL
 )`;
+
+export const CREATE_LITERATURES_KB_INDEX = `
+CREATE INDEX IF NOT EXISTS idx_literatures_knowledge_base_id
+    ON literatures(knowledge_base_id)`;

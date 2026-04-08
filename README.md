@@ -68,6 +68,7 @@ paper lit add <kb-id> <file-path>     # Add a literature (auto-extracts PDF meta
 paper lit remove <kb-id> <id>         # Remove a literature
 paper lit update <kb-id> <id> [opts]  # Update literature metadata
 paper lit list <kb-id>                # List literatures
+paper lit search <kb-id> [opts]       # Search literatures by metadata (--title/--author/--keyword/--doi)
 paper lit show <kb-id> <id>           # Show literature details
 paper lit note list <lit-id>          # List notes
 paper lit note set <lit-id> <k> <v>   # Set a note
