@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 
@@ -13,11 +13,17 @@ export async function isOpendataLoaderAvailable(): Promise<boolean> {
   return cachedAvailability;
 }
 
+export interface ConvertResult {
+  markdown: string;
+  /** Image files extracted from the PDF (filename → content). */
+  images: Map<string, Buffer>;
+}
+
 /**
  * Convert a PDF file to Markdown using opendataloader-pdf.
- * Returns the markdown content on success, or null on failure.
+ * Returns the markdown content and extracted images on success, or null on failure.
  */
-export async function convertPdfToMarkdown(pdfPath: string): Promise<string | null> {
+export async function convertPdfToMarkdown(pdfPath: string): Promise<ConvertResult | null> {
   const outDir = path.join(tmpdir(), `odl-${Date.now()}`);
   mkdirSync(outDir, { recursive: true });
 
@@ -29,14 +35,57 @@ export async function convertPdfToMarkdown(pdfPath: string): Promise<string | nu
       quiet: true,
     });
 
-    const mdFile = readdirSync(outDir).find((f) => f.endsWith(".md"));
+    const files = readdirSync(outDir);
+    const mdFile = files.find((f) => f.endsWith(".md"));
     if (!mdFile) return null;
 
-    return readFileSync(path.join(outDir, mdFile), "utf-8");
+    const markdown = readFileSync(path.join(outDir, mdFile), "utf-8");
+
+    const imageExtensions = new Set([".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"]);
+    const images = new Map<string, Buffer>();
+    for (const file of files) {
+      if (imageExtensions.has(path.extname(file).toLowerCase())) {
+        images.set(file, readFileSync(path.join(outDir, file)));
+      }
+    }
+
+    return { markdown, images };
   } catch {
     return null;
   } finally {
     rmSync(outDir, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Save a ConvertResult to disk: writes the markdown file and any extracted images.
+ * Images are stored in `filesDir/<id>/` and image references in the markdown are
+ * rewritten to use the `<id>/` prefix.
+ */
+export function saveConvertResult(filesDir: string, id: string, result: ConvertResult): void {
+  let { markdown } = result;
+
+  if (result.images.size > 0) {
+    const imageSubDir = path.join(filesDir, id);
+    mkdirSync(imageSubDir, { recursive: true });
+
+    for (const [filename, data] of result.images) {
+      writeFileSync(path.join(imageSubDir, filename), data);
+      // Rewrite image/link references: ](filename) → ](<id>/filename)
+      markdown = markdown.replaceAll(`](${filename})`, `](${id}/${filename})`);
+    }
+  }
+
+  writeFileSync(path.join(filesDir, `${id}.md`), markdown, "utf-8");
+}
+
+/**
+ * Remove the extracted images directory for a literature, if it exists.
+ */
+export function removeImageDir(filesDir: string, id: string): void {
+  const imageDir = path.join(filesDir, id);
+  if (existsSync(imageDir)) {
+    rmSync(imageDir, { recursive: true, force: true });
   }
 }
 

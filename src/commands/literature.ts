@@ -17,7 +17,12 @@ import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
 import { extractContent, extractPdfMetadata } from "../extractor/index.js";
-import { convertPdfToMarkdown, isOpendataLoaderAvailable } from "../extractor/markdown.js";
+import {
+  convertPdfToMarkdown,
+  isOpendataLoaderAvailable,
+  removeImageDir,
+  saveConvertResult,
+} from "../extractor/markdown.js";
 import { log } from "../logger.js";
 import { splitDocuments } from "../text-splitter.js";
 import type {
@@ -119,9 +124,9 @@ export function createLiteratureCommand(): Command {
 
       // Convert PDF to Markdown if opendataloader is available
       if (isPdf && (await isOpendataLoaderAvailable())) {
-        const markdown = await convertPdfToMarkdown(absolutePath);
-        if (markdown) {
-          fs.writeFileSync(path.join(filesDir, `${literature.id}.md`), markdown, "utf-8");
+        const result = await convertPdfToMarkdown(absolutePath);
+        if (result) {
+          saveConvertResult(filesDir, literature.id, result);
           log.step("Converted to Markdown via opendataloader-pdf.");
         }
       }
@@ -197,13 +202,13 @@ export function createLiteratureCommand(): Command {
       }
 
       log.info("Converting PDF to Markdown...");
-      const markdown = await convertPdfToMarkdown(path.join(filesDir, pdfFile));
-      if (!markdown) {
+      const result = await convertPdfToMarkdown(path.join(filesDir, pdfFile));
+      if (!result) {
         log.error("Conversion failed.");
         process.exit(1);
       }
 
-      fs.writeFileSync(mdPath, markdown, "utf-8");
+      saveConvertResult(filesDir, id, result);
       log.success(`Markdown saved: ${id}.md`);
     });
 
@@ -229,7 +234,7 @@ export function createLiteratureCommand(): Command {
         process.exit(1);
       }
 
-      // Delete stored file (find by pattern <id>.*)
+      // Delete stored files and image directory
       const filesDir = getFilesDir(baseDir);
       if (fs.existsSync(filesDir)) {
         for (const entry of fs.readdirSync(filesDir, { withFileTypes: true })) {
@@ -237,6 +242,7 @@ export function createLiteratureCommand(): Command {
             fs.unlinkSync(path.join(filesDir, entry.name));
           }
         }
+        removeImageDir(filesDir, id);
       }
 
       // Delete literature record

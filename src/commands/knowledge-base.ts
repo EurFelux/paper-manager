@@ -15,6 +15,7 @@ import * as projectKb from "../db/project/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
+import { removeImageDir } from "../extractor/markdown.js";
 import { log } from "../logger.js";
 import type { KnowledgeBaseMetadata } from "../types/index.js";
 import { queryVectorStore } from "../vector-store/index.js";
@@ -174,7 +175,7 @@ export function createKnowledgeBaseCommand(): Command {
       // 1. Get all literatures in this KB
       const literatures = litOps.getLiteraturesByKnowledgeBaseId(id);
 
-      // 2. Delete stored files
+      // 2. Delete stored files and image directories
       const filesDir = getFilesDir(baseDir);
       if (fs.existsSync(filesDir)) {
         for (const lit of literatures) {
@@ -183,6 +184,7 @@ export function createKnowledgeBaseCommand(): Command {
               fs.unlinkSync(path.join(filesDir, entry.name));
             }
           }
+          removeImageDir(filesDir, lit.id);
         }
       }
 
