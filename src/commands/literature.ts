@@ -263,7 +263,8 @@ export function createLiteratureCommand(): Command {
   lit
     .command("list <knowledge-base-id>")
     .description("List literatures in a knowledge base")
-    .action((kbId: string) => {
+    .option("--json", "Output as JSON")
+    .action((kbId: string, options: { json?: boolean }) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
         log.error(`Knowledge base not found: ${kbId}`);
@@ -274,7 +275,16 @@ export function createLiteratureCommand(): Command {
       const literatures = litOps.listLiteratures(kbId);
 
       if (literatures.length === 0) {
-        log.info("No literatures found.");
+        if (options.json) {
+          log.plain("[]");
+        } else {
+          log.info("No literatures found.");
+        }
+        return;
+      }
+
+      if (options.json) {
+        log.plain(JSON.stringify(literatures, null, 2));
         return;
       }
 
@@ -297,10 +307,17 @@ export function createLiteratureCommand(): Command {
     .option("-a, --author <author>", "Author substring")
     .option("-k, --keyword <keyword>", "Keyword substring")
     .option("--doi <doi>", "DOI substring")
+    .option("--json", "Output as JSON")
     .action(
       (
         kbId: string,
-        options: { title?: string; author?: string; keyword?: string; doi?: string },
+        options: {
+          title?: string;
+          author?: string;
+          keyword?: string;
+          doi?: string;
+          json?: boolean;
+        },
       ) => {
         const resolved = resolveKnowledgeBase(kbId);
         if (!resolved) {
@@ -327,7 +344,16 @@ export function createLiteratureCommand(): Command {
         });
 
         if (results.length === 0) {
-          log.info("No literatures found.");
+          if (options.json) {
+            log.plain("[]");
+          } else {
+            log.info("No literatures found.");
+          }
+          return;
+        }
+
+        if (options.json) {
+          log.plain(JSON.stringify(results, null, 2));
           return;
         }
 
@@ -349,7 +375,8 @@ export function createLiteratureCommand(): Command {
   lit
     .command("show <knowledge-base-id> <id>")
     .description("Show literature details")
-    .action((kbId: string, id: string) => {
+    .option("--json", "Output as JSON")
+    .action((kbId: string, id: string, options: { json?: boolean }) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
         log.error(`Knowledge base not found: ${kbId}`);
@@ -364,6 +391,11 @@ export function createLiteratureCommand(): Command {
         process.exit(1);
       }
 
+      if (options.json) {
+        log.plain(JSON.stringify(literature, null, 2));
+        return;
+      }
+
       printLiterature(literature);
     });
 
@@ -374,11 +406,17 @@ export function createLiteratureCommand(): Command {
   note
     .command("list <literature-id>")
     .description("List all notes for a literature")
-    .action((litId: string) => {
+    .option("--json", "Output as JSON")
+    .action((litId: string, options: { json?: boolean }) => {
       const literature = findLiterature(litId);
       if (!literature) {
         log.error(`Literature not found: ${litId}`);
         process.exit(1);
+      }
+
+      if (options.json) {
+        log.plain(JSON.stringify(literature.notes, null, 2));
+        return;
       }
 
       const entries = Object.entries(literature.notes);

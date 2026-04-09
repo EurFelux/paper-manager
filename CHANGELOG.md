@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `--json` flag for read commands: `kb list`, `kb query`, `lit list`, `lit search`, `lit show`, `lit note list`
+
 ## [0.8.1] - 2026-04-08
 
 ### Fixed

@@ -85,7 +85,8 @@ export function createKnowledgeBaseCommand(): Command {
     .description("List knowledge bases")
     .option("--user", "List user knowledge bases only")
     .option("--all", "List all knowledge bases (default)")
-    .action((options: { user?: boolean; all?: boolean }) => {
+    .option("--json", "Output as JSON")
+    .action((options: { user?: boolean; all?: boolean; json?: boolean }) => {
       let results: Array<KnowledgeBaseMetadata & { scope: string }> = [];
 
       if (options.user) {
@@ -97,7 +98,16 @@ export function createKnowledgeBaseCommand(): Command {
       }
 
       if (results.length === 0) {
-        log.info("No knowledge bases found.");
+        if (options.json) {
+          log.plain("[]");
+        } else {
+          log.info("No knowledge bases found.");
+        }
+        return;
+      }
+
+      if (options.json) {
+        log.plain(JSON.stringify(results, null, 2));
         return;
       }
 
@@ -194,7 +204,8 @@ export function createKnowledgeBaseCommand(): Command {
   kb.command("query <id> <query-text>")
     .description("Query a knowledge base")
     .option("-k, --top-k <number>", "Number of results", "5")
-    .action(async (id: string, queryText: string, options: { topK: string }) => {
+    .option("--json", "Output as JSON")
+    .action(async (id: string, queryText: string, options: { topK: string; json?: boolean }) => {
       const resolved = resolveKnowledgeBase(id);
       if (!resolved) {
         log.error(`Knowledge base not found: ${id}`);
@@ -215,7 +226,19 @@ export function createKnowledgeBaseCommand(): Command {
       const results = await queryVectorStore(modelConfig, vectorDir, queryText, k);
 
       if (results.length === 0) {
-        log.info("No results found.");
+        if (options.json) {
+          log.plain("[]");
+        } else {
+          log.info("No results found.");
+        }
+        return;
+      }
+
+      if (options.json) {
+        const output = results
+          .filter((doc) => doc != null)
+          .map((doc) => ({ pageContent: doc.pageContent, metadata: doc.metadata }));
+        log.plain(JSON.stringify(output, null, 2));
         return;
       }
 
