@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { request } from "node:http";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 
@@ -29,10 +30,12 @@ export async function convertPdfToMarkdown(pdfPath: string): Promise<ConvertResu
 
   try {
     const { convert } = await import("@opendataloader/pdf");
+    const hybridAvailable = await isHybridBackendAvailable();
     await convert([pdfPath], {
       outputDir: outDir,
       format: "markdown",
       quiet: true,
+      ...(hybridAvailable ? { hybrid: "docling-fast", hybridFallback: true } : {}),
     });
 
     const mdFile = readdirSync(outDir).find((f) => f.endsWith(".md"));
@@ -136,13 +139,43 @@ export async function checkOpendataLoaderStatus(): Promise<{
   packageInstalled: boolean;
   javaAvailable: boolean;
   javaVersion: string | null;
+  hybridBackendAvailable: boolean;
 }> {
-  const [packageInstalled, javaResult] = await Promise.all([checkPackage(), getJavaVersion()]);
+  const [packageInstalled, javaResult, hybridBackendAvailable] = await Promise.all([
+    checkPackage(),
+    getJavaVersion(),
+    isHybridBackendAvailable(),
+  ]);
   return {
     packageInstalled,
     javaAvailable: javaResult !== null,
     javaVersion: javaResult,
+    hybridBackendAvailable,
   };
+}
+
+const HYBRID_BACKEND_URL = "http://localhost:5002";
+const HYBRID_PROBE_TIMEOUT_MS = 1500;
+
+/** Check if the opendataloader hybrid backend is reachable at localhost:5002. */
+function isHybridBackendAvailable(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const req = request(
+      HYBRID_BACKEND_URL,
+      { method: "GET", timeout: HYBRID_PROBE_TIMEOUT_MS },
+      (res) => {
+        // Any response means the server is running
+        res.resume();
+        resolve(true);
+      },
+    );
+    req.on("error", () => resolve(false));
+    req.on("timeout", () => {
+      req.destroy();
+      resolve(false);
+    });
+    req.end();
+  });
 }
 
 // execFile is safe — arguments are passed as an array, no shell interpolation.

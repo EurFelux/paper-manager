@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.10.4] - 2026-04-10
+
+### Added
+
+- Auto-detect opendataloader hybrid backend at `localhost:5002` and enable `docling-fast` mode for improved PDF extraction quality
+- `dep check` now shows hybrid backend availability status
+
 ## [0.10.3] - 2026-04-10
 
 ### Fixed
@@ -185,6 +192,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - SQLite metadata storage
 - Import sorting and type import lint rules
 
+[0.10.4]: https://github.com/EurFelux/paper-manager/compare/v0.10.3...v0.10.4
 [0.10.3]: https://github.com/EurFelux/paper-manager/compare/v0.10.2...v0.10.3
 [0.10.2]: https://github.com/EurFelux/paper-manager/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/EurFelux/paper-manager/compare/v0.10.0...v0.10.1

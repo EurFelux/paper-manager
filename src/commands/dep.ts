@@ -38,6 +38,7 @@ async function checkOpendataLoader(): Promise<void> {
 
   const pkgIcon = status.packageInstalled ? chalk.green("✔") : chalk.red("✖");
   const javaIcon = status.javaAvailable ? chalk.green("✔") : chalk.red("✖");
+  const hybridIcon = status.hybridBackendAvailable ? chalk.green("✔") : chalk.dim("○");
 
   log.plain(`  ${pkgIcon} @opendataloader/pdf package`);
 
@@ -47,10 +48,19 @@ async function checkOpendataLoader(): Promise<void> {
     log.plain(`  ${javaIcon} Java runtime (not found)`);
   }
 
+  if (status.hybridBackendAvailable) {
+    log.plain(`  ${hybridIcon} Hybrid backend (localhost:5002)`);
+  } else {
+    log.plain(`  ${hybridIcon} Hybrid backend (not running, optional)`);
+  }
+
   log.newline();
 
   if (status.packageInstalled && status.javaAvailable) {
     log.success("opendataloader-pdf is ready.");
+    if (status.hybridBackendAvailable) {
+      log.step("Hybrid mode enabled — using docling backend for improved extraction.");
+    }
   } else {
     log.error("opendataloader-pdf is not available.");
     if (!status.packageInstalled) {
