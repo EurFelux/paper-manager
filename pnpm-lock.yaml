@@ -81,6 +81,10 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(tsx@4.21.0)(yaml@2.8.2)
+    optionalDependencies:
+      '@opendataloader/pdf':
+        specifier: ^2.2.1
+        version: 2.2.1
 
 packages:
 
@@ -683,6 +687,11 @@ packages:
   '@napi-rs/canvas@0.1.80':
     resolution: {integrity: sha512-DxuT1ClnIPts1kQx8FBmkk4BQDTfI5kIzywAaMjQSXfNnra5UFU9PwurXrl+Je3bJ6BGsp/zmshVVFbCmyI+ww==}
     engines: {node: '>= 10'}
+
+  '@opendataloader/pdf@2.2.1':
+    resolution: {integrity: sha512-nZKfceOuio5Nx8N6bO6VUG07gk3gMPv92n6wb3lCctPiWnGS+7wwFVQr+bw41FM5S6xvgQ1qQG3A1YT0FsT+bw==}
+    engines: {node: '>=20.19.0'}
+    hasBin: true
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -2422,6 +2431,11 @@ snapshots:
       '@napi-rs/canvas-linux-x64-gnu': 0.1.80
       '@napi-rs/canvas-linux-x64-musl': 0.1.80
       '@napi-rs/canvas-win32-x64-msvc': 0.1.80
+    optional: true
+
+  '@opendataloader/pdf@2.2.1':
+    dependencies:
+      commander: 14.0.3
     optional: true
 
   '@opentelemetry/api@1.9.0': {}

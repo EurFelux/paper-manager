@@ -58,6 +58,9 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
+  "optionalDependencies": {
+    "@opendataloader/pdf": "^2.2.1"
+  },
   "engines": {
     "node": ">=24"
   },

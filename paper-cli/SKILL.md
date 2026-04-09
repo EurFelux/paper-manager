@@ -189,13 +189,28 @@ Most read commands support `--json` for machine-readable output. Use this when p
 ### `kb list --json`
 
 ```json
-[{ "id": "uuid", "name": "...", "description": "...", "embeddingModelId": "...", "scope": "project|user", "createdAt": "ISO", "updatedAt": "ISO" }]
+[
+  {
+    "id": "uuid",
+    "name": "...",
+    "description": "...",
+    "embeddingModelId": "...",
+    "scope": "project|user",
+    "createdAt": "ISO",
+    "updatedAt": "ISO"
+  }
+]
 ```
 
 ### `kb query --json`
 
 ```json
-[{ "pageContent": "chunk text...", "metadata": { "literatureId": "uuid", "source": "path", "loc": { "pageNumber": 1 } } }]
+[
+  {
+    "pageContent": "chunk text...",
+    "metadata": { "literatureId": "uuid", "source": "path", "loc": { "pageNumber": 1 } }
+  }
+]
 ```
 
 ### `lit list --json` / `lit search --json`

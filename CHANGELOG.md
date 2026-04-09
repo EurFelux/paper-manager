@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `dep check` command for checking external dependency availability (e.g., `paper dep check opendataloader`)
+- Automatic PDF-to-Markdown conversion via opendataloader-pdf during `lit add` (requires Java 11+, silently skipped when unavailable)
+
 ## [0.9.0] - 2026-04-09
 
 ### Added

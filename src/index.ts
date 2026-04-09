@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import { Command } from "commander";
 
 import { createConfigCommand } from "./commands/config.js";
+import { createDepCommand } from "./commands/dep.js";
 import { createKnowledgeBaseCommand } from "./commands/knowledge-base.js";
 import { createLiteratureCommand } from "./commands/literature.js";
 import { createUtilCommand } from "./commands/util.js";
@@ -22,6 +23,7 @@ program.hook("preAction", () => {
 });
 
 program.addCommand(createConfigCommand());
+program.addCommand(createDepCommand());
 program.addCommand(createKnowledgeBaseCommand());
 program.addCommand(createLiteratureCommand());
 program.addCommand(createUtilCommand());

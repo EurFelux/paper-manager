@@ -17,6 +17,7 @@ import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
 import { extractContent, extractPdfMetadata } from "../extractor/index.js";
+import { convertPdfToMarkdown, isOpendataLoaderAvailable } from "../extractor/markdown.js";
 import { log } from "../logger.js";
 import { splitDocuments } from "../text-splitter.js";
 import type {
@@ -115,6 +116,15 @@ export function createLiteratureCommand(): Command {
       const ext = path.extname(litPath);
       fs.mkdirSync(filesDir, { recursive: true });
       fs.copyFileSync(absolutePath, path.join(filesDir, `${literature.id}${ext}`));
+
+      // Convert PDF to Markdown if opendataloader is available
+      if (isPdf && (await isOpendataLoaderAvailable())) {
+        const markdown = await convertPdfToMarkdown(absolutePath);
+        if (markdown) {
+          fs.writeFileSync(path.join(filesDir, `${literature.id}.md`), markdown, "utf-8");
+          log.step("Converted to Markdown via opendataloader-pdf.");
+        }
+      }
 
       // Split text and add to vector store
       log.info("Splitting text...");
