@@ -64,12 +64,16 @@ vi.mock("../config/index.js", () => ({
 
 vi.mock("../vector-store/index.js", () => ({
   createVectorStore: vi.fn(),
-  loadVectorStore: vi.fn(),
+  addDocuments: vi.fn(),
 }));
 
 vi.mock("../extractor/index.js", () => ({
   extractContent: vi.fn(),
   extractPdfMetadata: vi.fn(),
+}));
+
+vi.mock("../text-splitter.js", () => ({
+  splitDocuments: vi.fn(() => []),
 }));
 
 // ─── Helpers ────────────────────────────────────────────────

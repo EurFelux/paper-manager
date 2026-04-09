@@ -4,6 +4,13 @@ import * as z from "zod";
 
 export type { KnowledgeBaseMetadata, LiteratureMetadata } from "../db/schema.js";
 
+// ─── Document ──────────────────────────────────────────────
+
+export interface Document {
+  pageContent: string;
+  metadata: Record<string, unknown>;
+}
+
 // ─── Embedding Model Config ─────────────────────────────────
 
 export const EmbeddingModelConfigSchema = z.object({

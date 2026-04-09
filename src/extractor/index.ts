@@ -1,6 +1,6 @@
-import type { Document } from "@langchain/core/documents";
 import mime from "mime-types";
 
+import type { Document } from "../types/index.js";
 import { extractPdfContent, extractPdfMetadata } from "./pdf.js";
 import { extractTextContent } from "./text.js";
 
