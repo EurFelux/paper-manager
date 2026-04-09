@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 
 - Replace LangChain ecosystem with direct `faiss-node` usage and built-in text splitter, removing 105 packages and cutting production install size from 273MB to 134MB
+- Replace `pdf-parse` with `unpdf` (same PDF.js engine, 1.8MB vs 57MB)
 
 ## [0.8.1] - 2026-04-08
 

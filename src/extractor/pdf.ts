@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 
-import { PDFParse } from "pdf-parse";
+import { extractText, getMeta } from "unpdf";
 
 import type { Document } from "../types/index.js";
 
@@ -16,38 +16,33 @@ export interface PdfMetadata {
 }
 
 export async function extractPdfContent(pdfPath: string): Promise<Document[]> {
-  const data = await readFile(pdfPath);
-  const parser = new PDFParse({ data });
-  const result = await parser.getText();
-  await parser.destroy();
+  const data = new Uint8Array(await readFile(pdfPath));
+  const result = await extractText(data, { mergePages: false });
 
-  return result.pages.map((page) => ({
-    pageContent: page.text,
+  return result.text.map((pageText, i) => ({
+    pageContent: pageText,
     metadata: {
       source: pdfPath,
-      pdf: { totalPages: result.total },
-      loc: { pageNumber: page.num },
+      pdf: { totalPages: result.totalPages },
+      loc: { pageNumber: i + 1 },
     },
   }));
 }
 
 export async function extractPdfMetadata(pdfPath: string): Promise<PdfMetadata> {
-  const data = await readFile(pdfPath);
-  const parser = new PDFParse({ data });
-  const result = await parser.getInfo();
-  await parser.destroy();
+  const data = new Uint8Array(await readFile(pdfPath));
+  const { info } = await getMeta(data);
 
-  const info = result.info as Record<string, unknown> | undefined;
-  const custom = info?.["Custom"] as Record<string, unknown> | undefined;
+  const custom = getRecord(info["Custom"]);
 
-  const title = nonEmptyStringOrNull(info?.["Title"]);
-  const author = nonEmptyStringOrNull(info?.["Author"]);
-  const subject = nonEmptyStringOrNull(info?.["Subject"]);
-  const creator = nonEmptyStringOrNull(info?.["Creator"]);
-  const creationDate = parsePdfDate(nonEmptyStringOrNull(info?.["CreationDate"]));
-  const modDate = parsePdfDate(nonEmptyStringOrNull(info?.["ModDate"]));
+  const title = nonEmptyStringOrNull(info["Title"]);
+  const author = nonEmptyStringOrNull(info["Author"]);
+  const subject = nonEmptyStringOrNull(info["Subject"]);
+  const creator = nonEmptyStringOrNull(info["Creator"]);
+  const creationDate = parsePdfDate(nonEmptyStringOrNull(info["CreationDate"]));
+  const modDate = parsePdfDate(nonEmptyStringOrNull(info["ModDate"]));
 
-  const rawKeywords = nonEmptyStringOrNull(info?.["Keywords"]);
+  const rawKeywords = nonEmptyStringOrNull(info["Keywords"]);
   const keywords = rawKeywords
     ? rawKeywords
         .split(/[,;]/)
@@ -55,10 +50,16 @@ export async function extractPdfMetadata(pdfPath: string): Promise<PdfMetadata> 
         .filter(Boolean)
     : [];
 
-  // DOI can appear in Custom fields (case-insensitive lookup)
   const doi = findCustomField(custom, "doi");
 
   return { title, author, subject, keywords, doi, creator, creationDate, modDate };
+}
+
+function getRecord(value: unknown): Record<string, unknown> | undefined {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return undefined;
 }
 
 function nonEmptyStringOrNull(value: unknown): string | null {
@@ -76,7 +77,6 @@ function parsePdfDate(value: string | null): Date | null {
   if (!value) return null;
   const cleaned = value.replace(/^D:/, "");
 
-  // Extract components: YYYY[MM[DD[HH[mm[SS]]]]]
   const match = /^(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?/.exec(cleaned);
   if (!match) return null;
 
@@ -91,9 +91,6 @@ function parsePdfDate(value: string | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-/**
- * Case-insensitive lookup in the Custom fields dictionary.
- */
 function findCustomField(custom: Record<string, unknown> | undefined, key: string): string | null {
   if (!custom) return null;
   const lowerKey = key.toLowerCase();
