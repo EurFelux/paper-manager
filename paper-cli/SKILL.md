@@ -114,17 +114,21 @@ The `<id>` for knowledge bases is a UUID assigned at creation time. Use `paper k
 # Add a paper (extracts content, splits text, creates embeddings)
 # Supports PDF, TXT, MD, TEX, and other text-based formats
 # For PDFs, automatically extracts metadata (title, author, keywords, DOI, etc.)
+# If opendataloader-pdf is available, also converts PDF to Markdown automatically
 paper lit add <kb-id> <file-path> [-t <title>]
 # Title defaults to PDF metadata title, then filename if not specified
 
-# List papers in a knowledge base
+# Convert an existing literature PDF to Markdown (requires opendataloader-pdf)
+paper lit convert <lit-id>
+
+# List papers in a knowledge base (shows associated files: PDF, MD, etc.)
 paper lit list <kb-id> [--json]
 
 # Search papers in a KB by metadata (at least one filter required)
 paper lit search <kb-id> [-t <title>] [-a <author>] [-k <keyword>] [--doi <doi>] [--json]
 # Filters use substring matching; combining filters narrows results (AND)
 
-# Show full details of a paper
+# Show full details of a paper (shows associated files: PDF, MD, etc.)
 paper lit show <kb-id> <lit-id> [--json]
 
 # Update paper metadata
@@ -153,6 +157,15 @@ paper lit note remove <lit-id> <key>            # Remove a note
 ```
 
 Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
+
+### paper dep — Dependency Management
+
+```bash
+# Check if an external dependency is available
+paper dep check opendataloader   # Checks Java runtime + @opendataloader/pdf package
+```
+
+opendataloader-pdf is used for high-quality PDF-to-Markdown conversion. It requires Java 11+ and the `@opendataloader/pdf` npm package (optional dependency). If unavailable, `lit add` silently skips the conversion; `lit convert` will report what's missing.
 
 ### paper util — Utilities
 

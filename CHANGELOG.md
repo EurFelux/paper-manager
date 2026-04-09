@@ -9,7 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - `dep check` command for checking external dependency availability (e.g., `paper dep check opendataloader`)
+- `lit convert` command for converting existing literature PDFs to Markdown via opendataloader-pdf
 - Automatic PDF-to-Markdown conversion via opendataloader-pdf during `lit add` (requires Java 11+, silently skipped when unavailable)
+- `lit list` and `lit show` now display associated files (PDF, Markdown, etc.) for each literature
 
 ## [0.9.0] - 2026-04-09
 
