@@ -161,7 +161,10 @@ Note: the note commands take `<lit-id>` directly (not `<kb-id> <lit-id>`).
 ### paper dep — Dependency Management
 
 ```bash
-# Check if an external dependency is available
+# Check all external dependencies
+paper dep check
+
+# Check a specific dependency
 paper dep check opendataloader   # Checks Java runtime + @opendataloader/pdf package
 ```
 
@@ -257,4 +260,4 @@ Single literature object (same shape as array elements above).
 
 ## Skill Maintenance
 
-Skill version: v0.10.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
+Skill version: v0.10.1. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
