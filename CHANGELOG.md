@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.10.2] - 2026-04-10
+
+### Fixed
+
+- Preserve images extracted by opendataloader during PDF-to-Markdown conversion; previously all image links in the generated Markdown were broken because the temp directory was deleted before images could be saved
+
+## [0.10.1] - 2026-04-10
+
+### Fixed
+
+- Make `dep check` argument optional so running `paper dep check` without arguments checks all dependencies
+
 ## [0.10.0] - 2026-04-09
 
 ### Added
@@ -167,6 +179,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - SQLite metadata storage
 - Import sorting and type import lint rules
 
+[0.10.2]: https://github.com/EurFelux/paper-manager/compare/v0.10.1...v0.10.2
+[0.10.1]: https://github.com/EurFelux/paper-manager/compare/v0.10.0...v0.10.1
+[0.10.0]: https://github.com/EurFelux/paper-manager/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/EurFelux/paper-manager/compare/v0.8.1...v0.9.0
+[0.8.1]: https://github.com/EurFelux/paper-manager/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/EurFelux/paper-manager/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/EurFelux/paper-manager/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/EurFelux/paper-manager/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/EurFelux/paper-manager/compare/v0.4.2...v0.5.0
