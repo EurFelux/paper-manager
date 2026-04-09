@@ -291,10 +291,14 @@ export function createLiteratureCommand(): Command {
         return;
       }
 
+      const filesDir = getFilesDir(getBaseDir(resolved.scope));
+
       for (const l of literatures) {
         log.header(l.id);
         log.label("Title:", l.title);
         if (l.author) log.label("Author:", l.author);
+        const files = findLiteratureFiles(filesDir, l.id);
+        log.label("Files:", files.length > 0 ? files.join(", ") : "(none)");
         log.label("Created:", l.createdAt.toISOString());
         log.newline();
       }
@@ -399,7 +403,8 @@ export function createLiteratureCommand(): Command {
         return;
       }
 
-      printLiterature(literature);
+      const filesDir = getFilesDir(getBaseDir(resolved.scope));
+      printLiterature(literature, filesDir);
     });
 
   // ─── lit note ──────────────────────────────────────────────
@@ -487,7 +492,15 @@ function findLiteratureWithScope(
   return null;
 }
 
-function printLiterature(lit: LiteratureMetadata): void {
+function findLiteratureFiles(filesDir: string, id: string): string[] {
+  if (!fs.existsSync(filesDir)) return [];
+  return fs
+    .readdirSync(filesDir)
+    .filter((name) => name.startsWith(`${id}.`))
+    .sort();
+}
+
+function printLiterature(lit: LiteratureMetadata, filesDir: string): void {
   log.header(lit.id);
   log.label("Title:", lit.title);
   if (lit.titleTranslation) log.label("Title (translated):", lit.titleTranslation);
@@ -498,6 +511,8 @@ function printLiterature(lit: LiteratureMetadata): void {
   if (lit.url) log.label("URL:", lit.url);
   if (lit.doi) log.label("DOI:", lit.doi);
   if (lit.knowledgeBaseId) log.label("Knowledge Base:", lit.knowledgeBaseId);
+  const files = findLiteratureFiles(filesDir, lit.id);
+  log.label("Files:", files.length > 0 ? files.join(", ") : "(none)");
   log.label("Created:", lit.createdAt.toISOString());
   log.label("Updated:", lit.updatedAt.toISOString());
 
