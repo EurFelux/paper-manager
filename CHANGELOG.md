@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.10.3] - 2026-04-10
+
+### Fixed
+
+- Recursively collect images from opendataloader output subdirectories (e.g., `<pdf>_images/`); the previous fix only scanned the top-level output directory and missed all images
+
 ## [0.10.2] - 2026-04-10
 
 ### Fixed
@@ -179,6 +185,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - SQLite metadata storage
 - Import sorting and type import lint rules
 
+[0.10.3]: https://github.com/EurFelux/paper-manager/compare/v0.10.2...v0.10.3
 [0.10.2]: https://github.com/EurFelux/paper-manager/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/EurFelux/paper-manager/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/EurFelux/paper-manager/compare/v0.9.0...v0.10.0

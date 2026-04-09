@@ -15,7 +15,7 @@ export async function isOpendataLoaderAvailable(): Promise<boolean> {
 
 export interface ConvertResult {
   markdown: string;
-  /** Image files extracted from the PDF (filename → content). */
+  /** Image files extracted from the PDF (relative path → content). */
   images: Map<string, Buffer>;
 }
 
@@ -35,19 +35,14 @@ export async function convertPdfToMarkdown(pdfPath: string): Promise<ConvertResu
       quiet: true,
     });
 
-    const files = readdirSync(outDir);
-    const mdFile = files.find((f) => f.endsWith(".md"));
+    const mdFile = readdirSync(outDir).find((f) => f.endsWith(".md"));
     if (!mdFile) return null;
 
     const markdown = readFileSync(path.join(outDir, mdFile), "utf-8");
 
     const imageExtensions = new Set([".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"]);
     const images = new Map<string, Buffer>();
-    for (const file of files) {
-      if (imageExtensions.has(path.extname(file).toLowerCase())) {
-        images.set(file, readFileSync(path.join(outDir, file)));
-      }
-    }
+    collectImages(outDir, outDir, imageExtensions, images);
 
     return { markdown, images };
   } catch {
@@ -69,10 +64,11 @@ export function saveConvertResult(filesDir: string, id: string, result: ConvertR
     const imageSubDir = path.join(filesDir, id);
     mkdirSync(imageSubDir, { recursive: true });
 
-    for (const [filename, data] of result.images) {
-      writeFileSync(path.join(imageSubDir, filename), data);
-      // Rewrite image/link references: ](filename) → ](<id>/filename)
-      markdown = markdown.replaceAll(`](${filename})`, `](${id}/${filename})`);
+    for (const [relPath, data] of result.images) {
+      const basename = path.basename(relPath);
+      writeFileSync(path.join(imageSubDir, basename), data);
+      // Rewrite image/link references: ](old/path.png) → ](<id>/basename.png)
+      markdown = markdown.replaceAll(`](${relPath})`, `](${id}/${basename})`);
     }
   }
 
@@ -90,6 +86,23 @@ export function removeImageDir(filesDir: string, id: string): void {
 }
 
 // ─── Internal ────────────────────────────────────────────
+
+/** Recursively collect image files under `dir`, keyed by path relative to `root`. */
+function collectImages(
+  dir: string,
+  root: string,
+  extensions: Set<string>,
+  out: Map<string, Buffer>,
+): void {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectImages(full, root, extensions, out);
+    } else if (extensions.has(path.extname(entry.name).toLowerCase())) {
+      out.set(path.relative(root, full), readFileSync(full));
+    }
+  }
+}
 
 let cachedAvailability: boolean | undefined;
 

@@ -38,36 +38,38 @@ describe("saveConvertResult", () => {
     expect(fs.existsSync(path.join(tmpDir, "lit-1"))).toBe(false);
   });
 
-  it("saves images to <id>/ subdirectory and rewrites paths in markdown", () => {
+  it("saves images with subdirectory relative paths and rewrites markdown", () => {
     const imgData = Buffer.from("fake-png-data");
+    // Simulate opendataloader output: images in <pdf-name>_images/ subdir
     const result: ConvertResult = {
-      markdown: "# Paper\n\n![Figure 1](figure1.png)\n\nSome text with figure1.png reference.",
-      images: new Map([["figure1.png", imgData]]),
+      markdown:
+        "# Paper\n\n![Figure 1](paper_images/imageFile1.png)\n\nSee paper_images/imageFile1.png.",
+      images: new Map([["paper_images/imageFile1.png", imgData]]),
     };
 
     saveConvertResult(tmpDir, "lit-2", result);
 
-    // Markdown file should exist with rewritten image paths
     const mdContent = fs.readFileSync(path.join(tmpDir, "lit-2.md"), "utf-8");
-    expect(mdContent).toContain("](lit-2/figure1.png)");
-    expect(mdContent).not.toContain("](figure1.png)");
-    // Prose mentions of the filename should NOT be rewritten
-    expect(mdContent).toContain("text with figure1.png reference");
+    // Image reference should be rewritten to <id>/<basename>
+    expect(mdContent).toContain("](lit-2/imageFile1.png)");
+    expect(mdContent).not.toContain("](paper_images/imageFile1.png)");
+    // Prose mentions should NOT be rewritten
+    expect(mdContent).toContain("See paper_images/imageFile1.png.");
 
-    // Image file should exist in subdirectory
-    const imgPath = path.join(tmpDir, "lit-2", "figure1.png");
+    // Image file should be saved under <id>/ with just the basename
+    const imgPath = path.join(tmpDir, "lit-2", "imageFile1.png");
     expect(fs.existsSync(imgPath)).toBe(true);
     expect(fs.readFileSync(imgPath)).toEqual(imgData);
   });
 
-  it("handles multiple images", () => {
+  it("handles multiple images from subdirectory", () => {
     const img1 = Buffer.from("img1");
     const img2 = Buffer.from("img2");
     const result: ConvertResult = {
-      markdown: "![](fig1.png)\n![](fig2.jpg)",
+      markdown: "![](foo_images/fig1.png)\n![](foo_images/fig2.jpg)",
       images: new Map([
-        ["fig1.png", img1],
-        ["fig2.jpg", img2],
+        ["foo_images/fig1.png", img1],
+        ["foo_images/fig2.jpg", img2],
       ]),
     };
 
@@ -78,12 +80,9 @@ describe("saveConvertResult", () => {
 
     expect(fs.readFileSync(path.join(tmpDir, "lit-3", "fig1.png"))).toEqual(img1);
     expect(fs.readFileSync(path.join(tmpDir, "lit-3", "fig2.jpg"))).toEqual(img2);
-
-    expect(fs.existsSync(path.join(tmpDir, "lit-3", "fig1.png"))).toBe(true);
-    expect(fs.existsSync(path.join(tmpDir, "lit-3", "fig2.jpg"))).toBe(true);
   });
 
-  it("rewrites all occurrences of the same image filename", () => {
+  it("handles images without subdirectory prefix", () => {
     const result: ConvertResult = {
       markdown: "![](logo.png) text ![](logo.png)",
       images: new Map([["logo.png", Buffer.from("x")]]),
@@ -95,16 +94,16 @@ describe("saveConvertResult", () => {
     expect(mdContent).toBe("![](lit-4/logo.png) text ![](lit-4/logo.png)");
   });
 
-  it("does not rewrite filename in prose text, only in markdown link syntax", () => {
+  it("does not rewrite paths in prose text, only in markdown link syntax", () => {
     const result: ConvertResult = {
-      markdown: "See figure1.png for details. ![](figure1.png)",
-      images: new Map([["figure1.png", Buffer.from("x")]]),
+      markdown: "See img_dir/figure1.png for details. ![](img_dir/figure1.png)",
+      images: new Map([["img_dir/figure1.png", Buffer.from("x")]]),
     };
 
     saveConvertResult(tmpDir, "lit-5", result);
 
     const mdContent = fs.readFileSync(path.join(tmpDir, "lit-5.md"), "utf-8");
-    expect(mdContent).toBe("See figure1.png for details. ![](lit-5/figure1.png)");
+    expect(mdContent).toBe("See img_dir/figure1.png for details. ![](lit-5/figure1.png)");
   });
 });
 
@@ -112,11 +111,11 @@ describe("saveConvertResult", () => {
 
 describe("removeImageDir", () => {
   it("removes an existing image directory", () => {
-    const imageDir = path.join(tmpDir, "lit-5");
+    const imageDir = path.join(tmpDir, "lit-6");
     fs.mkdirSync(imageDir);
     fs.writeFileSync(path.join(imageDir, "img.png"), "data");
 
-    removeImageDir(tmpDir, "lit-5");
+    removeImageDir(tmpDir, "lit-6");
 
     expect(fs.existsSync(imageDir)).toBe(false);
   });
