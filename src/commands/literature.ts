@@ -1,7 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import chalk from "chalk";
 import cliProgress from "cli-progress";
 import { Command } from "commander";
@@ -19,12 +18,13 @@ import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
 import { extractContent, extractPdfMetadata } from "../extractor/index.js";
 import { log } from "../logger.js";
+import { splitDocuments } from "../text-splitter.js";
 import type {
   KnowledgeBaseMetadata,
   LiteratureMetadata,
   UpdateLiteratureInput,
 } from "../types/index.js";
-import { createVectorStore, loadVectorStore } from "../vector-store/index.js";
+import { addDocuments, createVectorStore } from "../vector-store/index.js";
 
 function resolveKnowledgeBase(
   id: string,
@@ -118,11 +118,7 @@ export function createLiteratureCommand(): Command {
 
       // Split text and add to vector store
       log.info("Splitting text...");
-      const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000,
-        chunkOverlap: 200,
-      });
-      const splitDocs = await splitter.splitDocuments(docs);
+      const splitDocs = splitDocuments(docs, { chunkSize: 1000, chunkOverlap: 200 });
       log.step(`Created ${String(splitDocs.length)} chunks.`);
 
       // Add literature ID metadata to each chunk
@@ -142,11 +138,8 @@ export function createLiteratureCommand(): Command {
         fs.existsSync(path.join(vectorDir, "faiss.index")) &&
         fs.existsSync(path.join(vectorDir, "docstore.json"));
       if (hasIndex) {
-        const store = await loadVectorStore(modelConfig, vectorDir);
-        await store.addDocuments(splitDocs);
-        await store.save(vectorDir);
+        await addDocuments(splitDocs, modelConfig, vectorDir);
       } else {
-        fs.mkdirSync(vectorDir, { recursive: true });
         await createVectorStore(splitDocs, modelConfig, vectorDir);
       }
 

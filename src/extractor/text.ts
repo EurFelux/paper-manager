@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 
-import { Document } from "@langchain/core/documents";
+import type { Document } from "../types/index.js";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -14,9 +14,9 @@ export async function extractTextContent(filePath: string): Promise<Document[]> 
 
   const content = await readFile(filePath, "utf-8");
   return [
-    new Document({
+    {
       pageContent: content,
       metadata: { source: filePath },
-    }),
+    },
   ];
 }

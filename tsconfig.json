@@ -10,8 +10,8 @@
 
     /* Emit */
     "outDir": "dist",
-    "declaration": true,
-    "sourceMap": true,
+    "declaration": false,
+    "sourceMap": false,
 
     /* Type Checking */
     "strict": true,

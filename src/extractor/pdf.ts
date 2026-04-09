@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 
-import { Document } from "@langchain/core/documents";
 import { PDFParse } from "pdf-parse";
+
+import type { Document } from "../types/index.js";
 
 export interface PdfMetadata {
   title: string | null;
@@ -20,17 +21,14 @@ export async function extractPdfContent(pdfPath: string): Promise<Document[]> {
   const result = await parser.getText();
   await parser.destroy();
 
-  return result.pages.map(
-    (page) =>
-      new Document({
-        pageContent: page.text,
-        metadata: {
-          source: pdfPath,
-          pdf: { totalPages: result.total },
-          loc: { pageNumber: page.num },
-        },
-      }),
-  );
+  return result.pages.map((page) => ({
+    pageContent: page.text,
+    metadata: {
+      source: pdfPath,
+      pdf: { totalPages: result.total },
+      loc: { pageNumber: page.num },
+    },
+  }));
 }
 
 export async function extractPdfMetadata(pdfPath: string): Promise<PdfMetadata> {
