@@ -10,16 +10,20 @@ export function createDepCommand(): Command {
   const dep = new Command("dep").description("Manage external dependencies");
 
   dep
-    .command("check <dep>")
+    .command("check [dep]")
     .description("Check if an external dependency is available")
-    .action(async (depName: string) => {
-      if (!KNOWN_DEPS.has(depName)) {
-        log.error(`Unknown dependency: ${depName}`);
-        log.step(`Available: ${[...KNOWN_DEPS].join(", ")}`);
-        process.exit(1);
-      }
-
-      if (depName === "opendataloader") {
+    .action(async (depName?: string) => {
+      if (depName != null) {
+        if (!KNOWN_DEPS.has(depName)) {
+          log.error(`Unknown dependency: ${depName}`);
+          log.step(`Available: ${[...KNOWN_DEPS].join(", ")}`);
+          process.exit(1);
+        }
+        if (depName === "opendataloader") {
+          await checkOpendataLoader();
+        }
+      } else {
+        // Check all known dependencies
         await checkOpendataLoader();
       }
     });
