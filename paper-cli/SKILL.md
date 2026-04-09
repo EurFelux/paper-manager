@@ -94,7 +94,7 @@ Config keys:
 paper kb create <name> -d <description> [-e <embedding-model-id>] [--user]
 
 # List knowledge bases
-paper kb list [--user | --all]
+paper kb list [--user | --all] [--json]
 
 # Update knowledge base metadata (name and/or description)
 paper kb update <id> [-n <name>] [-d <description>]
@@ -103,7 +103,7 @@ paper kb update <id> [-n <name>] [-d <description>]
 paper kb remove <id>
 
 # Semantic search across a knowledge base
-paper kb query <id> <query-text> [-k <top-k>]   # default top-k is 5
+paper kb query <id> <query-text> [-k <top-k>] [--json]   # default top-k is 5
 ```
 
 The `<id>` for knowledge bases is a UUID assigned at creation time. Use `paper kb list` to find it.
@@ -118,14 +118,14 @@ paper lit add <kb-id> <file-path> [-t <title>]
 # Title defaults to PDF metadata title, then filename if not specified
 
 # List papers in a knowledge base
-paper lit list <kb-id>
+paper lit list <kb-id> [--json]
 
 # Search papers in a KB by metadata (at least one filter required)
-paper lit search <kb-id> [-t <title>] [-a <author>] [-k <keyword>] [--doi <doi>]
+paper lit search <kb-id> [-t <title>] [-a <author>] [-k <keyword>] [--doi <doi>] [--json]
 # Filters use substring matching; combining filters narrows results (AND)
 
 # Show full details of a paper
-paper lit show <kb-id> <lit-id>
+paper lit show <kb-id> <lit-id> [--json]
 
 # Update paper metadata
 paper lit update <kb-id> <lit-id> [options]
@@ -147,7 +147,7 @@ paper lit remove <kb-id> <lit-id>
 Notes are key-value string pairs attached to a literature entry — useful for personal annotations.
 
 ```bash
-paper lit note list <lit-id>                    # List all notes
+paper lit note list <lit-id> [--json]            # List all notes
 paper lit note set <lit-id> <key> <value>       # Set a note
 paper lit note remove <lit-id> <key>            # Remove a note
 ```
@@ -182,6 +182,38 @@ paper util pdf-meta <file> [--json]
 
 Source files are stored at `<scope-dir>/files/<lit-id>.<ext>` (e.g., `.paper-manager/files/f47ac10b-58cc-4372-a567-0e02b2c3d479.pdf`). To locate a literature's file, use `paper lit list <kb-id>` to get the literature ID, then look in the `files/` directory under the appropriate scope directory (`.paper-manager/` for project scope, `~/.paper-manager/` for user scope).
 
+## JSON Output (`--json`)
+
+Most read commands support `--json` for machine-readable output. Use this when piping to `jq` or processing output programmatically.
+
+### `kb list --json`
+
+```json
+[{ "id": "uuid", "name": "...", "description": "...", "embeddingModelId": "...", "scope": "project|user", "createdAt": "ISO", "updatedAt": "ISO" }]
+```
+
+### `kb query --json`
+
+```json
+[{ "pageContent": "chunk text...", "metadata": { "literatureId": "uuid", "source": "path", "loc": { "pageNumber": 1 } } }]
+```
+
+### `lit list --json` / `lit search --json`
+
+```json
+[{ "id": "uuid", "title": "...", "author": "...", "keywords": [], "doi": "...", "knowledgeBaseId": "uuid", "createdAt": "ISO", "updatedAt": "ISO", ... }]
+```
+
+### `lit show --json`
+
+Single literature object (same shape as array elements above).
+
+### `lit note list --json`
+
+```json
+{ "key1": "value1", "key2": "value2" }
+```
+
 ## Important Notes
 
 - All IDs (knowledge base, literature) are UUIDs — always use `list` commands to look them up
@@ -193,4 +225,4 @@ Source files are stored at `<scope-dir>/files/<lit-id>.<ext>` (e.g., `.paper-man
 
 ## Skill Maintenance
 
-Skill version: v0.8.1. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
+Skill version: v0.9.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
