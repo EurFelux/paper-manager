@@ -221,7 +221,11 @@ Most read commands support `--json` for machine-readable output. Use this when p
 [
   {
     "pageContent": "chunk text...",
-    "metadata": { "literatureId": "uuid", "source": "path", "loc": { "pageNumber": 1 } }
+    "metadata": {
+      "literatureId": "uuid",
+      "source": "path",
+      "loc": { "pageNumber": 1 }
+    }
   }
 ]
 ```
@@ -253,4 +257,4 @@ Single literature object (same shape as array elements above).
 
 ## Skill Maintenance
 
-Skill version: v0.9.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
+Skill version: v0.10.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
