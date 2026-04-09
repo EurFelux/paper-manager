@@ -164,6 +164,49 @@ export function createLiteratureCommand(): Command {
       if (literature.keywords.length > 0) log.label("Keywords:", literature.keywords.join(", "));
     });
 
+  // ─── lit convert ────────────────────────────────────────────
+
+  lit
+    .command("convert <id>")
+    .description("Convert an existing literature PDF to Markdown via opendataloader-pdf")
+    .action(async (id: string) => {
+      const found = findLiteratureWithScope(id);
+      if (!found) {
+        log.error(`Literature not found: ${id}`);
+        process.exit(1);
+      }
+
+      const filesDir = getFilesDir(getBaseDir(found.scope));
+      const pdfFile = findLiteratureFiles(filesDir, id).find((f) => f.endsWith(".pdf"));
+      if (!pdfFile) {
+        log.error(`No PDF file found for literature: ${id}`);
+        process.exit(1);
+      }
+
+      const mdPath = path.join(filesDir, `${id}.md`);
+      if (fs.existsSync(mdPath)) {
+        log.error("Markdown file already exists. Delete it first to reconvert.");
+        process.exit(1);
+      }
+
+      if (!(await isOpendataLoaderAvailable())) {
+        log.error(
+          "opendataloader-pdf is not available. Run `paper dep check opendataloader` for details.",
+        );
+        process.exit(1);
+      }
+
+      log.info("Converting PDF to Markdown...");
+      const markdown = await convertPdfToMarkdown(path.join(filesDir, pdfFile));
+      if (!markdown) {
+        log.error("Conversion failed.");
+        process.exit(1);
+      }
+
+      fs.writeFileSync(mdPath, markdown, "utf-8");
+      log.success(`Markdown saved: ${id}.md`);
+    });
+
   // ─── lit remove ────────────────────────────────────────────
 
   lit
