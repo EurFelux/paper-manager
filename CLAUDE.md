@@ -26,6 +26,11 @@ Paper Manager is a CLI tool (`paper` command) for managing academic papers with 
 
 - **Avoid `any` and `as`**: Do not use `any` type or `as` type assertions. Use proper type annotations and type guards instead.
 
+## Documentation Workflow
+
+- **Changelog**: Every new feature or bug fix must include a corresponding entry in `CHANGELOG.md`.
+- **SKILL.md**: New features must also update `paper-cli/SKILL.md` to reflect the new CLI usage.
+
 ## Architecture
 
 ### Dual-Scope Model
