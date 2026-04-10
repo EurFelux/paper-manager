@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - `lit add` now checks for duplicate DOI in the knowledge base before adding; use `--force` / `-f` to skip the check
 
+### Fixed
+
+- Project-scoped knowledge bases now work from subdirectories; `getProjectDataDir()` traverses up to find `.paper-manager/` like git finds `.git/`
+
 ## [0.11.0] - 2026-04-10
 
 ### Added
