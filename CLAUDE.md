@@ -26,6 +26,14 @@ Paper Manager is a CLI tool (`paper` command) for managing academic papers with 
 
 - **Avoid `any` and `as`**: Do not use `any` type or `as` type assertions. Use proper type annotations and type guards instead.
 
+## Code Review Workflow
+
+- **Mandatory review before commit**: After completing a feature or bug fix, you MUST use the `code-reviewer` agent to review all changes before committing. If the reviewer requests changes, fix them and re-run the reviewer. Only commit after the reviewer approves.
+
+## Testing Workflow
+
+- **Tests required**: When adding a new feature or fixing a bug, you MUST add test cases covering the new functionality or the bug scenario whenever feasible. All tests must pass before committing.
+
 ## Documentation Workflow
 
 - **Changelog**: Every new feature or bug fix must include a corresponding entry in `CHANGELOG.md`.

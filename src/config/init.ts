@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { initializeDatabase, openDatabase } from "../db/index.js";
 import {
   getFilesDir,
-  getProjectDataDir,
+  getProjectInitDir,
   getUserDataDir,
   getVectorStoreDir,
   writeConfigFile,
@@ -16,7 +16,7 @@ export interface InitScopeResult {
 }
 
 export function initScope(options?: { user?: boolean }): InitScopeResult {
-  const baseDir = options?.user ? getUserDataDir() : getProjectDataDir();
+  const baseDir = options?.user ? getUserDataDir() : getProjectInitDir();
   const items: InitScopeResult["items"] = [];
 
   // 1. Base directory

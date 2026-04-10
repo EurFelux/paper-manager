@@ -10,14 +10,49 @@ import { EmbeddingModelConfigSchema } from "../types/index.js";
 // ─── Path Utilities ─────────────────────────────────────────
 
 const USER_DATA_DIR = path.join(os.homedir(), ".paper-manager");
-const PROJECT_DATA_DIR = path.resolve(".paper-manager");
+const DIR_NAME = ".paper-manager";
+
+function findProjectDataDir(): string {
+  let dir = process.cwd();
+  while (true) {
+    const candidate = path.join(dir, DIR_NAME);
+    if (fs.existsSync(candidate)) return candidate;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  // Fallback: CWD (no .paper-manager/ found up the tree)
+  return path.resolve(DIR_NAME);
+}
+
+let cachedProjectDataDir: string | undefined;
 
 export function getUserDataDir(): string {
   return USER_DATA_DIR;
 }
 
+/**
+ * Returns the project-level `.paper-manager/` directory path, traversing
+ * up from CWD. Falls back to CWD if not found. Result is cached per process.
+ */
 export function getProjectDataDir(): string {
-  return PROJECT_DATA_DIR;
+  if (cachedProjectDataDir === undefined) {
+    cachedProjectDataDir = findProjectDataDir();
+  }
+  return cachedProjectDataDir;
+}
+
+/** @internal Reset cached project data dir. For testing only. */
+export function resetProjectDataDirCache(): void {
+  cachedProjectDataDir = undefined;
+}
+
+/**
+ * Returns CWD-based `.paper-manager/` path without traversal.
+ * Used by `config init` to always create in the current directory.
+ */
+export function getProjectInitDir(): string {
+  return path.resolve(DIR_NAME);
 }
 
 export function getFilesDir(base: string): string {
@@ -33,7 +68,7 @@ function getUserConfigPath(): string {
 }
 
 function getProjectConfigPath(): string {
-  return path.join(PROJECT_DATA_DIR, "config.json");
+  return path.join(getProjectDataDir(), "config.json");
 }
 
 // ─── Config Schema Map ─────────────────────────────────────

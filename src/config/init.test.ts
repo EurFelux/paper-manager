@@ -3,18 +3,17 @@ import * as path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { getFilesDir, getProjectDataDir, getVectorStoreDir } from "./index.js";
+import { getFilesDir, getProjectInitDir, getVectorStoreDir } from "./index.js";
 import { initScope } from "./init.js";
 
-// initScope() uses getProjectDataDir() which is a module-level constant resolved at import time.
-// This means process.chdir() cannot redirect it. We must clean up the actual project data dir
-// between tests to ensure isolation.
+// initScope() uses getProjectInitDir() which resolves to CWD/.paper-manager.
+// We must clean up the actual project data dir between tests to ensure isolation.
 
 let origCwd: string;
 
 beforeEach(() => {
   origCwd = process.cwd();
-  const projectDir = getProjectDataDir();
+  const projectDir = getProjectInitDir();
   if (fs.existsSync(projectDir)) {
     fs.rmSync(projectDir, { recursive: true, force: true });
   }
@@ -22,7 +21,7 @@ beforeEach(() => {
 
 afterEach(() => {
   process.chdir(origCwd);
-  const projectDir = getProjectDataDir();
+  const projectDir = getProjectInitDir();
   if (fs.existsSync(projectDir)) {
     fs.rmSync(projectDir, { recursive: true, force: true });
   }

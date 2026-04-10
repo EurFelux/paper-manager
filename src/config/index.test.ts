@@ -8,8 +8,11 @@ import {
   getDefaultModelConfig,
   getFilesDir,
   getModelConfig,
+  getProjectDataDir,
+  getProjectInitDir,
   getVectorStoreDir,
   readConfigFile,
+  resetProjectDataDirCache,
   writeConfigFile,
 } from "./index.js";
 
@@ -24,6 +27,77 @@ describe("getFilesDir", () => {
 describe("getVectorStoreDir", () => {
   it("appends vector-stores to base path", () => {
     expect(getVectorStoreDir("/data")).toBe(path.join("/data", "vector-stores"));
+  });
+});
+
+// ─── getProjectDataDir / getProjectInitDir ──────────────────
+
+describe("getProjectDataDir", () => {
+  let tmpDir: string;
+  let origCwd: string;
+
+  beforeEach(() => {
+    // Use realpathSync to resolve symlinks (e.g., /var -> /private/var on macOS)
+    tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paper-test-")));
+    origCwd = process.cwd();
+    resetProjectDataDirCache();
+  });
+
+  afterEach(() => {
+    process.chdir(origCwd);
+    resetProjectDataDirCache();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("finds .paper-manager in a parent directory", () => {
+    const pmDir = path.join(tmpDir, ".paper-manager");
+    const subDir = path.join(tmpDir, "src", "lib");
+    fs.mkdirSync(pmDir);
+    fs.mkdirSync(subDir, { recursive: true });
+
+    process.chdir(subDir);
+    expect(getProjectDataDir()).toBe(pmDir);
+  });
+
+  it("falls back to CWD when no .paper-manager exists", () => {
+    const subDir = path.join(tmpDir, "empty-project", "src");
+    fs.mkdirSync(subDir, { recursive: true });
+
+    process.chdir(subDir);
+    expect(getProjectDataDir()).toBe(path.join(subDir, ".paper-manager"));
+  });
+
+  it("finds .paper-manager in the current directory", () => {
+    const pmDir = path.join(tmpDir, ".paper-manager");
+    fs.mkdirSync(pmDir);
+
+    process.chdir(tmpDir);
+    expect(getProjectDataDir()).toBe(pmDir);
+  });
+});
+
+describe("getProjectInitDir", () => {
+  let tmpDir: string;
+  let origCwd: string;
+
+  beforeEach(() => {
+    tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "paper-test-")));
+    origCwd = process.cwd();
+  });
+
+  afterEach(() => {
+    process.chdir(origCwd);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("always returns CWD-based path even when parent has .paper-manager", () => {
+    const pmDir = path.join(tmpDir, ".paper-manager");
+    const subDir = path.join(tmpDir, "nested");
+    fs.mkdirSync(pmDir);
+    fs.mkdirSync(subDir);
+
+    process.chdir(subDir);
+    expect(getProjectInitDir()).toBe(path.join(subDir, ".paper-manager"));
   });
 });
 
@@ -102,8 +176,8 @@ describe("getConfig", () => {
     origHome = process.env["HOME"] ?? "";
     origCwd = process.cwd();
     // Point user/project config to temp dirs by monkey-patching env
-    // Note: getUserDataDir/getProjectDataDir read from module-level constants,
-    // so we write config files at the actual resolved paths instead.
+    // Note: getUserDataDir reads from a module-level constant, getProjectDataDir
+    // traverses up from CWD. We write config files at the actual resolved paths.
   });
 
   afterEach(() => {
