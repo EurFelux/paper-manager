@@ -276,4 +276,4 @@ Single literature object (same shape as array elements above).
 
 ## Skill Maintenance
 
-Skill version: v0.11.1. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
+Skill version: v0.11.2. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
