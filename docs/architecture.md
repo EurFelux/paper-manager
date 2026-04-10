@@ -154,6 +154,8 @@ KnowledgeBase ──1:N──→ Literature
 PDF 文件
   ↓ PDFLoader（按页拆分）
 Document[]
+  ↓ 提取 PDF 元数据（标题、作者、DOI 等）
+  ↓ DOI 去重检查（--force 跳过）
   ↓ RecursiveCharacterTextSplitter（1000 字符块，200 重叠）
 切片 Document[]
   ↓ 创建文献记录 → SQLite

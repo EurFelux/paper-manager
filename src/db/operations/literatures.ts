@@ -109,6 +109,19 @@ export function updateLiterature(
   return row ?? null;
 }
 
+export function findLiteratureByDoi(
+  db: AppDatabase,
+  knowledgeBaseId: string,
+  doi: string,
+): LiteratureMetadata | null {
+  const row = db
+    .select()
+    .from(literatures)
+    .where(and(eq(literatures.knowledgeBaseId, knowledgeBaseId), eq(literatures.doi, doi)))
+    .get();
+  return row ?? null;
+}
+
 export function deleteLiterature(db: AppDatabase, id: string): boolean {
   const result = db.delete(literatures).where(eq(literatures.id, id)).run();
   return result.changes > 0;

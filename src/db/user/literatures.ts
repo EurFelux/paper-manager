@@ -40,6 +40,13 @@ export function searchLiteratures(
   return ops.searchLiteratures(getUserDb(), knowledgeBaseId, filters);
 }
 
+export function findLiteratureByDoi(
+  knowledgeBaseId: string,
+  doi: string,
+): LiteratureMetadata | null {
+  return ops.findLiteratureByDoi(getUserDb(), knowledgeBaseId, doi);
+}
+
 export function getLiteraturesByKnowledgeBaseId(knowledgeBaseId: string): LiteratureMetadata[] {
   return ops.getLiteraturesByKnowledgeBaseId(getUserDb(), knowledgeBaseId);
 }

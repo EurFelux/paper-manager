@@ -115,8 +115,9 @@ The `<id>` for knowledge bases is a UUID assigned at creation time. Use `paper k
 # Supports PDF, TXT, MD, TEX, and other text-based formats
 # For PDFs, automatically extracts metadata (title, author, keywords, DOI, etc.)
 # If opendataloader-pdf is available, also converts PDF to Markdown automatically
-paper lit add <kb-id> <file-path> [-t <title>]
+paper lit add <kb-id> <file-path> [-t <title>] [-f]
 # Title defaults to PDF metadata title, then filename if not specified
+# Rejects duplicate DOI in the same knowledge base; use -f/--force to override
 
 # Convert an existing literature PDF to Markdown (requires opendataloader-pdf)
 paper lit convert <lit-id>

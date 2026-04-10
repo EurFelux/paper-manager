@@ -60,7 +60,8 @@ export function createLiteratureCommand(): Command {
     .command("add <knowledge-base-id> <lit-path>")
     .description("Add a literature from a file (PDF, TXT, MD, TEX, etc.)")
     .option("-t, --title <title>", "Literature title")
-    .action(async (kbId: string, litPath: string, options: { title?: string }) => {
+    .option("-f, --force", "Force add even if a literature with the same DOI already exists")
+    .action(async (kbId: string, litPath: string, options: { title?: string; force?: boolean }) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
         log.error(`Knowledge base not found: ${kbId}`);
@@ -97,6 +98,18 @@ export function createLiteratureCommand(): Command {
           if (pdfMeta.keywords.length > 0) log.step(`Keywords: ${pdfMeta.keywords.join(", ")}`);
           if (pdfMeta.creationDate) log.step(`Created: ${pdfMeta.creationDate.toISOString()}`);
           if (pdfMeta.creator) log.step(`Creator: ${pdfMeta.creator}`);
+        }
+      }
+
+      // Check for duplicate DOI in the knowledge base
+      if (pdfMeta?.doi && !options.force) {
+        const existing = litOps.findLiteratureByDoi(kbId, pdfMeta.doi);
+        if (existing) {
+          log.error(
+            `A literature with DOI "${pdfMeta.doi}" already exists in this knowledge base: ${existing.id} (${existing.title})`,
+          );
+          log.info("Use --force to add anyway.");
+          process.exit(1);
         }
       }
 

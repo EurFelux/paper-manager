@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.1] - 2026-04-11
+
+### Added
+
+- `lit add` now checks for duplicate DOI in the knowledge base before adding; use `--force` / `-f` to skip the check
+
 ## [0.11.0] - 2026-04-10
 
 ### Added
