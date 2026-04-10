@@ -5,6 +5,20 @@
 
 A CLI tool for managing academic papers with knowledge base and vector search support.
 
+## Features
+
+- **Semantic search** — FAISS vector indexing with configurable embedding models, query your papers by meaning rather than keywords
+- **PDF metadata extraction** — automatically extracts title, author, keywords, DOI, and more from PDF files
+- **DOI deduplication** — detects duplicate papers by DOI before adding, with `--force` override
+- **Multi-format support** — import from PDF, TXT, MD, TEX, and other text-based formats
+- **PDF-to-Markdown conversion** — optional high-quality conversion via [opendataloader-pdf](https://github.com/nicobailon/opendataloader-pdf) with image extraction
+- **Dual-scope data model** — user-level (`~/.paper-manager/`) for global collections and project-level (`./.paper-manager/`) for project-specific papers, with automatic scope resolution
+- **DOI-to-BibTeX** — convert DOI to BibTeX citation in one command
+- **Machine-readable output** — `--json` and `--jq` flags on all read commands for scripting and automation
+- **Literature notes** — attach key-value annotations to any paper
+- **Local-first** — SQLite + FAISS + filesystem, no cloud dependencies
+- **Agent skill** — installable as a [coding agent skill](https://github.com/vercel-labs/skills) for agent-driven paper management
+
 ## Installation
 
 ```bash
