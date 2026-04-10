@@ -36,7 +36,7 @@ Paper Manager is a CLI tool (`paper` command) for managing academic papers with 
 
 ## Documentation Workflow
 
-- **Changelog**: Every new feature or bug fix must include a corresponding entry in `CHANGELOG.md`.
+- **Changelog**: Every new feature or bug fix must include a corresponding entry in `CHANGELOG.md`. Never modify entries for already-released versions unless fixing a confirmed error in the entry itself.
 - **SKILL.md**: New features must also update `paper-cli/SKILL.md` to reflect the new CLI usage.
 
 ## Architecture
