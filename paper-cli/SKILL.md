@@ -94,7 +94,7 @@ Config keys:
 paper kb create <name> -d <description> [-e <embedding-model-id>] [--user]
 
 # List knowledge bases
-paper kb list [--user | --all] [--json]
+paper kb list [--user | --all] [--json] [--jq <expression>]
 
 # Update knowledge base metadata (name and/or description)
 paper kb update <id> [-n <name>] [-d <description>]
@@ -103,7 +103,7 @@ paper kb update <id> [-n <name>] [-d <description>]
 paper kb remove <id>
 
 # Semantic search across a knowledge base
-paper kb query <id> <query-text> [-k <top-k>] [--json]   # default top-k is 5
+paper kb query <id> <query-text> [-k <top-k>] [--json] [--jq <expression>]   # default top-k is 5
 ```
 
 The `<id>` for knowledge bases is a UUID assigned at creation time. Use `paper kb list` to find it.
@@ -122,14 +122,14 @@ paper lit add <kb-id> <file-path> [-t <title>]
 paper lit convert <lit-id>
 
 # List papers in a knowledge base (shows associated files: PDF, MD, etc.)
-paper lit list <kb-id> [--json]
+paper lit list <kb-id> [--json] [--jq <expression>]
 
 # Search papers in a KB by metadata (at least one filter required)
-paper lit search <kb-id> [-t <title>] [-a <author>] [-k <keyword>] [--doi <doi>] [--json]
+paper lit search <kb-id> [-t <title>] [-a <author>] [-k <keyword>] [--doi <doi>] [--json] [--jq <expression>]
 # Filters use substring matching; combining filters narrows results (AND)
 
 # Show full details of a paper (shows associated files: PDF, MD, etc.)
-paper lit show <kb-id> <lit-id> [--json]
+paper lit show <kb-id> <lit-id> [--json] [--jq <expression>]
 
 # Update paper metadata
 paper lit update <kb-id> <lit-id> [options]
@@ -151,7 +151,7 @@ paper lit remove <kb-id> <lit-id>
 Notes are key-value string pairs attached to a literature entry — useful for personal annotations.
 
 ```bash
-paper lit note list <lit-id> [--json]            # List all notes
+paper lit note list <lit-id> [--json] [--jq <expression>]  # List all notes
 paper lit note set <lit-id> <key> <value>       # Set a note
 paper lit note remove <lit-id> <key>            # Remove a note
 ```
@@ -177,7 +177,7 @@ opendataloader-pdf is used for high-quality PDF-to-Markdown conversion. It requi
 paper util doi2bib <doi>
 
 # Extract metadata from a PDF file (title, author, subject, keywords, DOI, dates)
-paper util pdf-meta <file> [--json]
+paper util pdf-meta <file> [--json] [--jq <expression>]
 ```
 
 ## Common Workflows
@@ -198,9 +198,24 @@ paper util pdf-meta <file> [--json]
 
 Source files are stored at `<scope-dir>/files/<lit-id>.<ext>` (e.g., `.paper-manager/files/f47ac10b-58cc-4372-a567-0e02b2c3d479.pdf`). To locate a literature's file, use `paper lit list <kb-id>` to get the literature ID, then look in the `files/` directory under the appropriate scope directory (`.paper-manager/` for project scope, `~/.paper-manager/` for user scope).
 
-## JSON Output (`--json`)
+## JSON Output (`--json`) and jq Filtering (`--jq`)
 
-Most read commands support `--json` for machine-readable output. Use this when piping to `jq` or processing output programmatically.
+Most read commands support `--json` for machine-readable output and `--jq <expression>` for inline jq filtering.
+
+`--jq` implies `--json` — you don't need to pass both. If both are provided, `--json` is ignored. The jq implementation is built-in (pure TypeScript via `@eurfelux/jq-js`), so no external `jq` binary is needed.
+
+Examples:
+
+```bash
+# Get just the names of all knowledge bases
+paper kb list --jq '.[].name'
+
+# Get titles of papers by a specific author
+paper lit search <kb-id> -a "Smith" --jq '[.[] | .title]'
+
+# Extract DOI from a PDF
+paper util pdf-meta paper.pdf --jq '.doi'
+```
 
 ### `kb list --json`
 
@@ -260,4 +275,4 @@ Single literature object (same shape as array elements above).
 
 ## Skill Maintenance
 
-Skill version: v0.10.4. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.
+Skill version: v0.11.0. To update to the latest version, run `npx/pnpx/bunx skills add paper-manager`.

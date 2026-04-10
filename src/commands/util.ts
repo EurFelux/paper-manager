@@ -5,6 +5,7 @@ import { Command } from "commander";
 
 import { extractPdfMetadata } from "../extractor/pdf.js";
 import { log } from "../logger.js";
+import { outputJson } from "./output.js";
 
 export function createUtilCommand(): Command {
   const util = new Command("util").description("Utility commands");
@@ -34,7 +35,8 @@ export function createUtilCommand(): Command {
     .command("pdf-meta <file>")
     .description("Extract metadata from a PDF file")
     .option("--json", "Output as JSON")
-    .action(async (file: string, options: { json?: boolean }) => {
+    .option("--jq <expression>", "Filter JSON output with a jq expression (implies --json)")
+    .action(async (file: string, options: { json?: boolean; jq?: string }) => {
       const absolutePath = path.resolve(file);
 
       if (!existsSync(absolutePath)) {
@@ -55,8 +57,8 @@ export function createUtilCommand(): Command {
         process.exit(1);
       }
 
-      if (options.json) {
-        log.plain(JSON.stringify(meta, null, 2));
+      if (options.json || options.jq) {
+        outputJson(meta, options.jq);
         return;
       }
 

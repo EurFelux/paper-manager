@@ -19,6 +19,7 @@ import { removeImageDir } from "../extractor/markdown.js";
 import { log } from "../logger.js";
 import type { KnowledgeBaseMetadata } from "../types/index.js";
 import { queryVectorStore } from "../vector-store/index.js";
+import { outputJson } from "./output.js";
 
 function resolveKnowledgeBase(
   id: string,
@@ -87,7 +88,8 @@ export function createKnowledgeBaseCommand(): Command {
     .option("--user", "List user knowledge bases only")
     .option("--all", "List all knowledge bases (default)")
     .option("--json", "Output as JSON")
-    .action((options: { user?: boolean; all?: boolean; json?: boolean }) => {
+    .option("--jq <expression>", "Filter JSON output with a jq expression (implies --json)")
+    .action((options: { user?: boolean; all?: boolean; json?: boolean; jq?: string }) => {
       let results: Array<KnowledgeBaseMetadata & { scope: string }> = [];
 
       if (options.user) {
@@ -99,16 +101,16 @@ export function createKnowledgeBaseCommand(): Command {
       }
 
       if (results.length === 0) {
-        if (options.json) {
-          log.plain("[]");
+        if (options.json || options.jq) {
+          outputJson([], options.jq);
         } else {
           log.info("No knowledge bases found.");
         }
         return;
       }
 
-      if (options.json) {
-        log.plain(JSON.stringify(results, null, 2));
+      if (options.json || options.jq) {
+        outputJson(results, options.jq);
         return;
       }
 
@@ -207,54 +209,61 @@ export function createKnowledgeBaseCommand(): Command {
     .description("Query a knowledge base")
     .option("-k, --top-k <number>", "Number of results", "5")
     .option("--json", "Output as JSON")
-    .action(async (id: string, queryText: string, options: { topK: string; json?: boolean }) => {
-      const resolved = resolveKnowledgeBase(id);
-      if (!resolved) {
-        log.error(`Knowledge base not found: ${id}`);
-        process.exit(1);
-      }
-
-      const { kb: kbMeta, scope } = resolved;
-      const baseDir = getBaseDir(scope);
-      const vectorDir = path.join(getVectorStoreDir(baseDir), id);
-
-      if (!fs.existsSync(vectorDir)) {
-        log.error("No vector store found for this knowledge base.");
-        process.exit(1);
-      }
-
-      const modelConfig = getModelConfig(kbMeta.embeddingModelId);
-      const k = parseInt(options.topK, 10);
-      const results = await queryVectorStore(modelConfig, vectorDir, queryText, k);
-
-      if (results.length === 0) {
-        if (options.json) {
-          log.plain("[]");
-        } else {
-          log.info("No results found.");
+    .option("--jq <expression>", "Filter JSON output with a jq expression (implies --json)")
+    .action(
+      async (
+        id: string,
+        queryText: string,
+        options: { topK: string; json?: boolean; jq?: string },
+      ) => {
+        const resolved = resolveKnowledgeBase(id);
+        if (!resolved) {
+          log.error(`Knowledge base not found: ${id}`);
+          process.exit(1);
         }
-        return;
-      }
 
-      if (options.json) {
-        const output = results
-          .filter((doc) => doc != null)
-          .map((doc) => ({ pageContent: doc.pageContent, metadata: doc.metadata }));
-        log.plain(JSON.stringify(output, null, 2));
-        return;
-      }
+        const { kb: kbMeta, scope } = resolved;
+        const baseDir = getBaseDir(scope);
+        const vectorDir = path.join(getVectorStoreDir(baseDir), id);
 
-      for (let i = 0; i < results.length; i++) {
-        const doc = results[i];
-        if (!doc) continue;
-        log.header(`--- Result ${String(i + 1)} ---`);
-        log.plain(doc.pageContent);
-        if (doc.metadata && Object.keys(doc.metadata).length > 0) {
-          log.step(`Metadata: ${JSON.stringify(doc.metadata)}`);
+        if (!fs.existsSync(vectorDir)) {
+          log.error("No vector store found for this knowledge base.");
+          process.exit(1);
         }
-        log.newline();
-      }
-    });
+
+        const modelConfig = getModelConfig(kbMeta.embeddingModelId);
+        const k = parseInt(options.topK, 10);
+        const results = await queryVectorStore(modelConfig, vectorDir, queryText, k);
+
+        if (results.length === 0) {
+          if (options.json || options.jq) {
+            outputJson([], options.jq);
+          } else {
+            log.info("No results found.");
+          }
+          return;
+        }
+
+        if (options.json || options.jq) {
+          const output = results
+            .filter((doc) => doc != null)
+            .map((doc) => ({ pageContent: doc.pageContent, metadata: doc.metadata }));
+          outputJson(output, options.jq);
+          return;
+        }
+
+        for (let i = 0; i < results.length; i++) {
+          const doc = results[i];
+          if (!doc) continue;
+          log.header(`--- Result ${String(i + 1)} ---`);
+          log.plain(doc.pageContent);
+          if (doc.metadata && Object.keys(doc.metadata).length > 0) {
+            log.step(`Metadata: ${JSON.stringify(doc.metadata)}`);
+          }
+          log.newline();
+        }
+      },
+    );
 
   return kb;
 }

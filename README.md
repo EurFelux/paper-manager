@@ -55,10 +55,10 @@ paper config list [--user]               # List all config
 
 ```bash
 paper kb create <name> -d <desc> [-e <model-id>] [--user]  # Create a knowledge base
-paper kb list [--all | --user]        # List knowledge bases
-paper kb update <id> [-n <name>] [-d <desc>]  # Update knowledge base metadata
-paper kb remove <id>                  # Remove a knowledge base
-paper kb query <id> <query-text>      # Query a knowledge base
+paper kb list [--all | --user] [--json] [--jq <expr>]  # List knowledge bases
+paper kb update <id> [-n <name>] [-d <desc>]           # Update knowledge base metadata
+paper kb remove <id>                                   # Remove a knowledge base
+paper kb query <id> <query-text> [--json] [--jq <expr>]  # Query a knowledge base
 ```
 
 ### Literature (`paper lit`)
@@ -67,10 +67,10 @@ paper kb query <id> <query-text>      # Query a knowledge base
 paper lit add <kb-id> <file-path>     # Add a literature (auto-extracts PDF metadata)
 paper lit remove <kb-id> <id>         # Remove a literature
 paper lit update <kb-id> <id> [opts]  # Update literature metadata
-paper lit list <kb-id>                # List literatures
-paper lit search <kb-id> [opts]       # Search literatures by metadata (--title/--author/--keyword/--doi)
-paper lit show <kb-id> <id>           # Show literature details
-paper lit note list <lit-id>          # List notes
+paper lit list <kb-id> [--json] [--jq <expr>]       # List literatures
+paper lit search <kb-id> [opts] [--json] [--jq <expr>]  # Search literatures by metadata
+paper lit show <kb-id> <id> [--json] [--jq <expr>]  # Show literature details
+paper lit note list <lit-id> [--json] [--jq <expr>]  # List notes
 paper lit note set <lit-id> <k> <v>   # Set a note
 paper lit note remove <lit-id> <key>  # Remove a note
 ```
@@ -79,7 +79,7 @@ paper lit note remove <lit-id> <key>  # Remove a note
 
 ```bash
 paper util doi2bib <doi>             # Convert a DOI to BibTeX citation
-paper util pdf-meta <file> [--json]  # Extract metadata from a PDF file
+paper util pdf-meta <file> [--json] [--jq <expr>]  # Extract metadata from a PDF file
 ```
 
 ## Configuration

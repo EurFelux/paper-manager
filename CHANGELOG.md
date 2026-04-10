@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.0] - 2026-04-10
+
+### Added
+
+- `--jq <expression>` flag for all read commands (`kb list`, `kb query`, `lit list`, `lit search`, `lit show`, `lit note list`, `util pdf-meta`) — filters JSON output with a jq expression (implies `--json`), powered by `@eurfelux/jq-js`
+
 ## [0.10.4] - 2026-04-10
 
 ### Added
@@ -192,6 +198,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - SQLite metadata storage
 - Import sorting and type import lint rules
 
+[0.11.0]: https://github.com/EurFelux/paper-manager/compare/v0.10.4...v0.11.0
 [0.10.4]: https://github.com/EurFelux/paper-manager/compare/v0.10.3...v0.10.4
 [0.10.3]: https://github.com/EurFelux/paper-manager/compare/v0.10.2...v0.10.3
 [0.10.2]: https://github.com/EurFelux/paper-manager/compare/v0.10.1...v0.10.2

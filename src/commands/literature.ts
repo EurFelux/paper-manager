@@ -31,6 +31,7 @@ import type {
   UpdateLiteratureInput,
 } from "../types/index.js";
 import { addDocuments, createVectorStore } from "../vector-store/index.js";
+import { outputJson } from "./output.js";
 
 function resolveKnowledgeBase(
   id: string,
@@ -316,7 +317,8 @@ export function createLiteratureCommand(): Command {
     .command("list <knowledge-base-id>")
     .description("List literatures in a knowledge base")
     .option("--json", "Output as JSON")
-    .action((kbId: string, options: { json?: boolean }) => {
+    .option("--jq <expression>", "Filter JSON output with a jq expression (implies --json)")
+    .action((kbId: string, options: { json?: boolean; jq?: string }) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
         log.error(`Knowledge base not found: ${kbId}`);
@@ -327,16 +329,16 @@ export function createLiteratureCommand(): Command {
       const literatures = litOps.listLiteratures(kbId);
 
       if (literatures.length === 0) {
-        if (options.json) {
-          log.plain("[]");
+        if (options.json || options.jq) {
+          outputJson([], options.jq);
         } else {
           log.info("No literatures found.");
         }
         return;
       }
 
-      if (options.json) {
-        log.plain(JSON.stringify(literatures, null, 2));
+      if (options.json || options.jq) {
+        outputJson(literatures, options.jq);
         return;
       }
 
@@ -364,6 +366,7 @@ export function createLiteratureCommand(): Command {
     .option("-k, --keyword <keyword>", "Keyword substring")
     .option("--doi <doi>", "DOI substring")
     .option("--json", "Output as JSON")
+    .option("--jq <expression>", "Filter JSON output with a jq expression (implies --json)")
     .action(
       (
         kbId: string,
@@ -373,6 +376,7 @@ export function createLiteratureCommand(): Command {
           keyword?: string;
           doi?: string;
           json?: boolean;
+          jq?: string;
         },
       ) => {
         const resolved = resolveKnowledgeBase(kbId);
@@ -400,16 +404,16 @@ export function createLiteratureCommand(): Command {
         });
 
         if (results.length === 0) {
-          if (options.json) {
-            log.plain("[]");
+          if (options.json || options.jq) {
+            outputJson([], options.jq);
           } else {
             log.info("No literatures found.");
           }
           return;
         }
 
-        if (options.json) {
-          log.plain(JSON.stringify(results, null, 2));
+        if (options.json || options.jq) {
+          outputJson(results, options.jq);
           return;
         }
 
@@ -432,7 +436,8 @@ export function createLiteratureCommand(): Command {
     .command("show <knowledge-base-id> <id>")
     .description("Show literature details")
     .option("--json", "Output as JSON")
-    .action((kbId: string, id: string, options: { json?: boolean }) => {
+    .option("--jq <expression>", "Filter JSON output with a jq expression (implies --json)")
+    .action((kbId: string, id: string, options: { json?: boolean; jq?: string }) => {
       const resolved = resolveKnowledgeBase(kbId);
       if (!resolved) {
         log.error(`Knowledge base not found: ${kbId}`);
@@ -447,8 +452,8 @@ export function createLiteratureCommand(): Command {
         process.exit(1);
       }
 
-      if (options.json) {
-        log.plain(JSON.stringify(literature, null, 2));
+      if (options.json || options.jq) {
+        outputJson(literature, options.jq);
         return;
       }
 
@@ -464,15 +469,16 @@ export function createLiteratureCommand(): Command {
     .command("list <literature-id>")
     .description("List all notes for a literature")
     .option("--json", "Output as JSON")
-    .action((litId: string, options: { json?: boolean }) => {
+    .option("--jq <expression>", "Filter JSON output with a jq expression (implies --json)")
+    .action((litId: string, options: { json?: boolean; jq?: string }) => {
       const literature = findLiterature(litId);
       if (!literature) {
         log.error(`Literature not found: ${litId}`);
         process.exit(1);
       }
 
-      if (options.json) {
-        log.plain(JSON.stringify(literature.notes, null, 2));
+      if (options.json || options.jq) {
+        outputJson(literature.notes, options.jq);
         return;
       }
 

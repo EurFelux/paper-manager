@@ -14,6 +14,9 @@ importers:
       '@ai-sdk/provider':
         specifier: ^3.0.8
         version: 3.0.8
+      '@eurfelux/jq-js':
+        specifier: ^0.3.0
+        version: 0.3.0
       ai:
         specifier: ^6.0.105
         version: 6.0.105(zod@4.3.6)
@@ -594,6 +597,10 @@ packages:
   '@eslint/plugin-kit@0.6.0':
     resolution: {integrity: sha512-bIZEUzOI1jkhviX2cp5vNyXQc6olzb2ohewQubuYlMXZ2Q/XjBO0x0XhGPvc9fjSIiUN0vw+0hq53BJ4eQSJKQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@eurfelux/jq-js@0.3.0':
+    resolution: {integrity: sha512-XRmCOI3e33+LxwwaD5TstSENIWTKqrK+CliA97a8uK4fxeWzeiSF6lJJ5PXur/cgtH9TgKSlT5nOGH2/blU0Vg==}
+    engines: {node: '>=20'}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -2365,6 +2372,8 @@ snapshots:
     dependencies:
       '@eslint/core': 1.1.0
       levn: 0.4.1
+
+  '@eurfelux/jq-js@0.3.0': {}
 
   '@humanfs/core@0.19.1': {}
 
