@@ -276,6 +276,11 @@ Single literature object (same shape as array elements above).
 { "key1": "value1", "key2": "value2" }
 ```
 
+## Integration Guides
+
+- [Unpaywall API](unpaywall.md) — add Open Access papers by DOI (`paper lit add --doi`)
+- [opendataloader-pdf](opendataloader-pdf.md) — high-quality PDF-to-Markdown conversion with image extraction
+
 ## Important Notes
 
 - All IDs (knowledge base, literature) are UUIDs — always use `list` commands to look them up
