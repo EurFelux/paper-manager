@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.1] - 2026-04-16
+
+### Changed
+
+- Warn during `lit add` when opendataloader is available but the hybrid backend is not running
+- Move `isHybridBackendAvailable` to dedicated `dep` module
+
 ## [0.12.0] - 2026-04-16
 
 ### Added
