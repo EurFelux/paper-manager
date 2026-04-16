@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `paper lit add <kb-id> --doi <doi>`: add Open Access papers by DOI via [Unpaywall API](https://unpaywall.org/products/api) — automatically downloads the PDF and runs the full ingestion pipeline
+- Config field `email` for Unpaywall API identification (`paper config set email "you@example.com"`)
+
 ## [0.11.2] - 2026-04-11
 
 ### Fixed

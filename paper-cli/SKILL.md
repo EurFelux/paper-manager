@@ -86,6 +86,7 @@ Config keys:
 
 - `embeddingModels` — a JSON object of `{ [modelId]: { provider, model, baseUrl?, apiKey, dimensions, batchSize? } }`
 - `defaultEmbeddingModelId` — which model ID to use when none is specified
+- `email` — email address for Unpaywall API identification (required for `lit add --doi`)
 
 ### paper kb — Knowledge Base Management
 
@@ -118,6 +119,11 @@ The `<id>` for knowledge bases is a UUID assigned at creation time. Use `paper k
 paper lit add <kb-id> <file-path> [-t <title>] [-f]
 # Title defaults to PDF metadata title, then filename if not specified
 # Rejects duplicate DOI in the same knowledge base; use -f/--force to override
+
+# Add Open Access paper by DOI via Unpaywall API (downloads PDF automatically)
+# Requires email config: paper config set email "you@example.com"
+# Errors if paper is not Open Access — use file mode instead for non-OA papers
+paper lit add <kb-id> --doi <doi> [-t <title>] [-f]
 
 # Convert an existing literature PDF to Markdown (requires opendataloader-pdf)
 paper lit convert <lit-id>
@@ -188,6 +194,11 @@ paper util pdf-meta <file> [--json] [--jq <expression>]
 1. `paper kb create "my-project" -d "Papers about X"` — create a project-scoped KB
 2. `paper lit add <kb-id> ./paper.pdf -t "Paper Title"` — add papers (also works with .txt, .md, .tex)
 3. `paper kb query <kb-id> "your research question"` — search
+
+### Add a paper by DOI (Open Access)
+
+1. `paper config set email "you@example.com"` — set email for Unpaywall API (one-time)
+2. `paper lit add <kb-id> --doi 10.1038/nature12373` — automatically downloads OA PDF and ingests it
 
 ### Manage paper metadata
 

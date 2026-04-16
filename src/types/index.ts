@@ -62,6 +62,7 @@ export const ConfigSchema = z.object({
   $schema: z.string().optional(),
   embeddingModels: z.record(z.string().min(1), EmbeddingModelConfigSchema).default({}),
   defaultEmbeddingModelId: z.string().min(1).optional(),
+  email: z.email().optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

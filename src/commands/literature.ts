@@ -1,4 +1,5 @@
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
 
 import chalk from "chalk";
@@ -6,6 +7,7 @@ import cliProgress from "cli-progress";
 import { Command } from "commander";
 
 import {
+  getConfig,
   getFilesDir,
   getModelConfig,
   getProjectDataDir,
@@ -30,6 +32,8 @@ import type {
   LiteratureMetadata,
   UpdateLiteratureInput,
 } from "../types/index.js";
+import type { UnpaywallResponse } from "../unpaywall/index.js";
+import { downloadPdf, lookupDoi, normalizeDoi, UnpaywallError } from "../unpaywall/index.js";
 import { addDocuments, createVectorStore } from "../vector-store/index.js";
 import { outputJson } from "./output.js";
 
@@ -57,131 +61,262 @@ export function createLiteratureCommand(): Command {
   // ─── lit add ───────────────────────────────────────────────
 
   lit
-    .command("add <knowledge-base-id> <lit-path>")
-    .description("Add a literature from a file (PDF, TXT, MD, TEX, etc.)")
+    .command("add <knowledge-base-id> [lit-path]")
+    .description("Add a literature from a file (PDF, TXT, MD, TEX, etc.) or by DOI via Unpaywall")
     .option("-t, --title <title>", "Literature title")
     .option("-f, --force", "Force add even if a literature with the same DOI already exists")
-    .action(async (kbId: string, litPath: string, options: { title?: string; force?: boolean }) => {
-      const resolved = resolveKnowledgeBase(kbId);
-      if (!resolved) {
-        log.error(`Knowledge base not found: ${kbId}`);
-        process.exit(1);
-      }
-
-      const { kb, scope } = resolved;
-      const baseDir = getBaseDir(scope);
-      const litOps = getLitOps(scope);
-
-      // Resolve file path
-      const absolutePath = path.resolve(litPath);
-      if (!fs.existsSync(absolutePath)) {
-        log.error(`File not found: ${absolutePath}`);
-        process.exit(1);
-      }
-
-      log.info("Extracting content...");
-      const docs = await extractContent(absolutePath);
-      log.step(`Extracted ${String(docs.length)} pages.`);
-
-      // Extract PDF metadata if available
-      const isPdf = absolutePath.toLowerCase().endsWith(".pdf");
-      const pdfMeta = isPdf ? await extractPdfMetadata(absolutePath) : null;
-
-      if (pdfMeta) {
-        const hasAny = pdfMeta.title ?? pdfMeta.author ?? pdfMeta.doi ?? pdfMeta.subject;
-        if (hasAny || pdfMeta.keywords.length > 0) {
-          log.info("Extracted PDF metadata:");
-          if (pdfMeta.title) log.step(`Title: ${pdfMeta.title}`);
-          if (pdfMeta.author) log.step(`Author: ${pdfMeta.author}`);
-          if (pdfMeta.subject) log.step(`Subject: ${pdfMeta.subject}`);
-          if (pdfMeta.doi) log.step(`DOI: ${pdfMeta.doi}`);
-          if (pdfMeta.keywords.length > 0) log.step(`Keywords: ${pdfMeta.keywords.join(", ")}`);
-          if (pdfMeta.creationDate) log.step(`Created: ${pdfMeta.creationDate.toISOString()}`);
-          if (pdfMeta.creator) log.step(`Creator: ${pdfMeta.creator}`);
-        }
-      }
-
-      // Check for duplicate DOI in the knowledge base
-      if (pdfMeta?.doi && !options.force) {
-        const existing = litOps.findLiteratureByDoi(kbId, pdfMeta.doi);
-        if (existing) {
-          log.error(
-            `A literature with DOI "${pdfMeta.doi}" already exists in this knowledge base: ${existing.id} (${existing.title})`,
-          );
-          log.info("Use --force to add anyway.");
+    .option("-d, --doi <doi>", "Add paper by DOI (downloads Open Access PDF via Unpaywall)")
+    .action(
+      async (
+        kbId: string,
+        litPath: string | undefined,
+        options: { title?: string; force?: boolean; doi?: string },
+      ) => {
+        // Mutual exclusivity check
+        if (litPath && options.doi) {
+          log.error("Cannot specify both <lit-path> and --doi. Use one or the other.");
           process.exit(1);
         }
-      }
-
-      const title =
-        options.title ?? pdfMeta?.title ?? path.basename(litPath, path.extname(litPath));
-
-      // Create literature record
-      const literature = litOps.createLiterature({
-        title,
-        titleTranslation: null,
-        author: pdfMeta?.author ?? null,
-        abstract: pdfMeta?.subject ?? null,
-        summary: null,
-        keywords: pdfMeta?.keywords ?? [],
-        url: null,
-        doi: pdfMeta?.doi ?? null,
-        notes: {},
-        knowledgeBaseId: kbId,
-      });
-
-      // Copy file to storage
-      const filesDir = getFilesDir(baseDir);
-      const ext = path.extname(litPath);
-      fs.mkdirSync(filesDir, { recursive: true });
-      fs.copyFileSync(absolutePath, path.join(filesDir, `${literature.id}${ext}`));
-
-      // Convert PDF to Markdown if opendataloader is available
-      if (isPdf && (await isOpendataLoaderAvailable())) {
-        const result = await convertPdfToMarkdown(absolutePath);
-        if (result) {
-          saveConvertResult(filesDir, literature.id, result);
-          log.step("Converted to Markdown via opendataloader-pdf.");
+        if (!litPath && !options.doi) {
+          log.error("Either <lit-path> or --doi is required.");
+          process.exit(1);
         }
-      }
 
-      // Split text and add to vector store
-      log.info("Splitting text...");
-      const splitDocs = splitDocuments(docs, { chunkSize: 1000, chunkOverlap: 200 });
-      log.step(`Created ${String(splitDocs.length)} chunks.`);
+        const resolved = resolveKnowledgeBase(kbId);
+        if (!resolved) {
+          log.error(`Knowledge base not found: ${kbId}`);
+          process.exit(1);
+        }
 
-      // Add literature ID metadata to each chunk
-      for (const doc of splitDocs) {
-        doc.metadata = { ...doc.metadata, literatureId: literature.id };
-      }
+        const { kb, scope } = resolved;
+        const baseDir = getBaseDir(scope);
+        const litOps = getLitOps(scope);
 
-      const vectorDir = path.join(getVectorStoreDir(baseDir), kbId);
-      const modelConfig = getModelConfig(kb.embeddingModelId);
+        let absolutePath: string;
+        let tempDir: string | null = null;
+        let doiFromFlag: string | null = null;
+        let unpaywallMeta: UnpaywallResponse | null = null;
 
-      log.info("Embedding and storing vectors...");
-      const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-      bar.start(splitDocs.length, 0);
+        if (options.doi) {
+          // ─── DOI mode: lookup Unpaywall and download OA PDF ───
+          const normalizedDoi = normalizeDoi(options.doi);
+          doiFromFlag = normalizedDoi;
 
-      // Check if both FAISS index files exist (not just the directory)
-      const hasIndex =
-        fs.existsSync(path.join(vectorDir, "faiss.index")) &&
-        fs.existsSync(path.join(vectorDir, "docstore.json"));
-      if (hasIndex) {
-        await addDocuments(splitDocs, modelConfig, vectorDir);
-      } else {
-        await createVectorStore(splitDocs, modelConfig, vectorDir);
-      }
+          const email = getConfig("email");
+          if (!email) {
+            log.error(
+              'Email is required for Unpaywall API. Set it with: paper config set email "you@example.com"',
+            );
+            process.exit(1);
+          }
 
-      bar.update(splitDocs.length);
-      bar.stop();
+          // Check for duplicate DOI before downloading
+          if (!options.force) {
+            const existing = litOps.findLiteratureByDoi(kbId, normalizedDoi);
+            if (existing) {
+              log.error(
+                `A literature with DOI "${normalizedDoi}" already exists in this knowledge base: ${existing.id} (${existing.title})`,
+              );
+              log.info("Use --force to add anyway.");
+              process.exit(1);
+            }
+          }
 
-      log.success(`Literature added: ${literature.id}`);
-      log.label("Title:", literature.title);
-      if (literature.author) log.label("Author:", literature.author);
-      if (literature.abstract) log.label("Abstract:", literature.abstract);
-      if (literature.doi) log.label("DOI:", literature.doi);
-      if (literature.keywords.length > 0) log.label("Keywords:", literature.keywords.join(", "));
-    });
+          log.info(`Looking up DOI: ${normalizedDoi}`);
+          try {
+            unpaywallMeta = await lookupDoi(normalizedDoi, email);
+          } catch (err) {
+            if (err instanceof UnpaywallError) {
+              log.error(err.message);
+            } else {
+              log.error(
+                `Unpaywall lookup failed: ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
+            process.exit(1);
+          }
+
+          if (!unpaywallMeta.is_oa) {
+            log.error(`Paper is not Open Access (status: ${unpaywallMeta.oa_status}).`);
+            log.info(`Add it manually: paper lit add ${kbId} <file>`);
+            process.exit(1);
+          }
+
+          const pdfUrl = unpaywallMeta.best_oa_location?.url_for_pdf;
+          if (!pdfUrl) {
+            const landingPage = unpaywallMeta.best_oa_location?.url_for_landing_page;
+            log.error("Paper is Open Access but no direct PDF URL is available.");
+            if (landingPage) {
+              log.info(`Landing page: ${landingPage}`);
+            }
+            log.info(`Download the PDF manually and use: paper lit add ${kbId} <file>`);
+            process.exit(1);
+          }
+
+          // Show Unpaywall metadata
+          log.info("Unpaywall metadata:");
+          if (unpaywallMeta.title) log.step(`Title: ${unpaywallMeta.title}`);
+          if (unpaywallMeta.z_authors && unpaywallMeta.z_authors.length > 0) {
+            log.step(
+              `Authors: ${unpaywallMeta.z_authors.map((a) => a.raw_author_name).join(", ")}`,
+            );
+          }
+          if (unpaywallMeta.journal_name) log.step(`Journal: ${unpaywallMeta.journal_name}`);
+          if (unpaywallMeta.year) log.step(`Year: ${String(unpaywallMeta.year)}`);
+          log.step(`OA Status: ${unpaywallMeta.oa_status}`);
+
+          // Download PDF to temp location
+          tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "paper-unpaywall-"));
+          absolutePath = path.join(tempDir, `${normalizedDoi.replace(/\//g, "_")}.pdf`);
+
+          log.info("Downloading PDF...");
+          try {
+            await downloadPdf(pdfUrl, absolutePath);
+          } catch (err) {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+            if (err instanceof UnpaywallError) {
+              log.error(err.message);
+            } else {
+              log.error(`PDF download failed: ${err instanceof Error ? err.message : String(err)}`);
+            }
+            process.exit(1);
+          }
+          log.step("PDF downloaded.");
+        } else {
+          // ─── File mode (existing behavior) ────────────────────
+          // litPath is guaranteed to be defined here by the mutual exclusivity check above
+          const filePath = litPath ?? "";
+          absolutePath = path.resolve(filePath);
+          if (!fs.existsSync(absolutePath)) {
+            log.error(`File not found: ${absolutePath}`);
+            process.exit(1);
+          }
+        }
+
+        // ─── Shared flow ──────────────────────────────────────
+        try {
+          log.info("Extracting content...");
+          const docs = await extractContent(absolutePath);
+          log.step(`Extracted ${String(docs.length)} pages.`);
+
+          // Extract PDF metadata if available
+          const isPdf = absolutePath.toLowerCase().endsWith(".pdf");
+          const pdfMeta = isPdf ? await extractPdfMetadata(absolutePath) : null;
+
+          if (pdfMeta) {
+            const hasAny = pdfMeta.title ?? pdfMeta.author ?? pdfMeta.doi ?? pdfMeta.subject;
+            if (hasAny || pdfMeta.keywords.length > 0) {
+              log.info("Extracted PDF metadata:");
+              if (pdfMeta.title) log.step(`Title: ${pdfMeta.title}`);
+              if (pdfMeta.author) log.step(`Author: ${pdfMeta.author}`);
+              if (pdfMeta.subject) log.step(`Subject: ${pdfMeta.subject}`);
+              if (pdfMeta.doi) log.step(`DOI: ${pdfMeta.doi}`);
+              if (pdfMeta.keywords.length > 0) log.step(`Keywords: ${pdfMeta.keywords.join(", ")}`);
+              if (pdfMeta.creationDate) log.step(`Created: ${pdfMeta.creationDate.toISOString()}`);
+              if (pdfMeta.creator) log.step(`Creator: ${pdfMeta.creator}`);
+            }
+          }
+
+          // Check for duplicate DOI (file mode only — DOI mode already checked above)
+          const effectiveDoi = doiFromFlag ?? pdfMeta?.doi ?? null;
+          if (effectiveDoi && !doiFromFlag && !options.force) {
+            const existing = litOps.findLiteratureByDoi(kbId, effectiveDoi);
+            if (existing) {
+              log.error(
+                `A literature with DOI "${effectiveDoi}" already exists in this knowledge base: ${existing.id} (${existing.title})`,
+              );
+              log.info("Use --force to add anyway.");
+              process.exit(1);
+            }
+          }
+
+          // Resolve metadata: CLI option > Unpaywall > PDF metadata > fallback
+          const unpaywallAuthors =
+            unpaywallMeta?.z_authors && unpaywallMeta.z_authors.length > 0
+              ? unpaywallMeta.z_authors.map((a) => a.raw_author_name).join(", ")
+              : null;
+
+          const title =
+            options.title ??
+            unpaywallMeta?.title ??
+            pdfMeta?.title ??
+            (litPath
+              ? path.basename(litPath, path.extname(litPath))
+              : (effectiveDoi ?? "Untitled"));
+
+          // Create literature record
+          const literature = litOps.createLiterature({
+            title,
+            titleTranslation: null,
+            author: pdfMeta?.author ?? unpaywallAuthors,
+            abstract: pdfMeta?.subject ?? null,
+            summary: null,
+            keywords: pdfMeta?.keywords ?? [],
+            url: null,
+            doi: effectiveDoi,
+            notes: {},
+            knowledgeBaseId: kbId,
+          });
+
+          // Copy file to storage
+          const filesDir = getFilesDir(baseDir);
+          const ext = path.extname(absolutePath);
+          fs.mkdirSync(filesDir, { recursive: true });
+          fs.copyFileSync(absolutePath, path.join(filesDir, `${literature.id}${ext}`));
+
+          // Convert PDF to Markdown if opendataloader is available
+          if (isPdf && (await isOpendataLoaderAvailable())) {
+            const result = await convertPdfToMarkdown(absolutePath);
+            if (result) {
+              saveConvertResult(filesDir, literature.id, result);
+              log.step("Converted to Markdown via opendataloader-pdf.");
+            }
+          }
+
+          // Split text and add to vector store
+          log.info("Splitting text...");
+          const splitDocs = splitDocuments(docs, { chunkSize: 1000, chunkOverlap: 200 });
+          log.step(`Created ${String(splitDocs.length)} chunks.`);
+
+          // Add literature ID metadata to each chunk
+          for (const doc of splitDocs) {
+            doc.metadata = { ...doc.metadata, literatureId: literature.id };
+          }
+
+          const vectorDir = path.join(getVectorStoreDir(baseDir), kbId);
+          const modelConfig = getModelConfig(kb.embeddingModelId);
+
+          log.info("Embedding and storing vectors...");
+          const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+          bar.start(splitDocs.length, 0);
+
+          // Check if both FAISS index files exist (not just the directory)
+          const hasIndex =
+            fs.existsSync(path.join(vectorDir, "faiss.index")) &&
+            fs.existsSync(path.join(vectorDir, "docstore.json"));
+          if (hasIndex) {
+            await addDocuments(splitDocs, modelConfig, vectorDir);
+          } else {
+            await createVectorStore(splitDocs, modelConfig, vectorDir);
+          }
+
+          bar.update(splitDocs.length);
+          bar.stop();
+
+          log.success(`Literature added: ${literature.id}`);
+          log.label("Title:", literature.title);
+          if (literature.author) log.label("Author:", literature.author);
+          if (literature.abstract) log.label("Abstract:", literature.abstract);
+          if (literature.doi) log.label("DOI:", literature.doi);
+          if (literature.keywords.length > 0)
+            log.label("Keywords:", literature.keywords.join(", "));
+        } finally {
+          if (tempDir) {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        }
+      },
+    );
 
   // ─── lit convert ────────────────────────────────────────────
 

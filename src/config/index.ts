@@ -76,6 +76,7 @@ function getProjectConfigPath(): string {
 const configSchemas = {
   embeddingModels: z.record(z.string().min(1), EmbeddingModelConfigSchema),
   defaultEmbeddingModelId: z.string().min(1),
+  email: z.email(),
 } as const;
 
 type ConfigKeyTypeMap = {
@@ -120,6 +121,7 @@ export function getConfig(key: "embeddingModels"): ConfigKeyTypeMap["embeddingMo
 export function getConfig(
   key: "defaultEmbeddingModelId",
 ): ConfigKeyTypeMap["defaultEmbeddingModelId"] | null;
+export function getConfig(key: "email"): ConfigKeyTypeMap["email"] | null;
 export function getConfig(
   key: keyof ConfigKeyTypeMap,
 ): ConfigKeyTypeMap[keyof ConfigKeyTypeMap] | null {
