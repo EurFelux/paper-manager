@@ -18,6 +18,7 @@ import * as projectKb from "../db/project/knowledge-bases.js";
 import * as projectLit from "../db/project/literatures.js";
 import * as userKb from "../db/user/knowledge-bases.js";
 import * as userLit from "../db/user/literatures.js";
+import { isHybridBackendAvailable } from "../dep/index.js";
 import { extractContent, extractPdfMetadata } from "../extractor/index.js";
 import {
   convertPdfToMarkdown,
@@ -266,6 +267,11 @@ export function createLiteratureCommand(): Command {
 
           // Convert PDF to Markdown if opendataloader is available
           if (isPdf && (await isOpendataLoaderAvailable())) {
+            if (!(await isHybridBackendAvailable())) {
+              log.step(
+                "Hybrid backend (localhost:5002) is not running; using basic conversion. Start the backend for better quality.",
+              );
+            }
             const result = await convertPdfToMarkdown(absolutePath);
             if (result) {
               saveConvertResult(filesDir, literature.id, result);

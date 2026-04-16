@@ -1,8 +1,9 @@
 import { execFile } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { request } from "node:http";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
+
+import { isHybridBackendAvailable } from "../dep/index.js";
 
 /**
  * Check whether opendataloader-pdf is available (package installed + Java runtime).
@@ -152,30 +153,6 @@ export async function checkOpendataLoaderStatus(): Promise<{
     javaVersion: javaResult,
     hybridBackendAvailable,
   };
-}
-
-const HYBRID_BACKEND_URL = "http://localhost:5002";
-const HYBRID_PROBE_TIMEOUT_MS = 1500;
-
-/** Check if the opendataloader hybrid backend is reachable at localhost:5002. */
-function isHybridBackendAvailable(): Promise<boolean> {
-  return new Promise((resolve) => {
-    const req = request(
-      HYBRID_BACKEND_URL,
-      { method: "GET", timeout: HYBRID_PROBE_TIMEOUT_MS },
-      (res) => {
-        // Any response means the server is running
-        res.resume();
-        resolve(true);
-      },
-    );
-    req.on("error", () => resolve(false));
-    req.on("timeout", () => {
-      req.destroy();
-      resolve(false);
-    });
-    req.end();
-  });
 }
 
 // execFile is safe — arguments are passed as an array, no shell interpolation.
